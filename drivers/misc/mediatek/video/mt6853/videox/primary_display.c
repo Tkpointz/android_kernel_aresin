@@ -151,6 +151,9 @@ static struct task_struct *primary_od_trigger_task;
 static struct task_struct *decouple_update_rdma_config_thread;
 static struct task_struct *decouple_trigger_thread;
 static struct task_struct *init_decouple_buffer_thread;
+static uint display_framerate_main;
+static uint display_framerate_ext;
+
 #ifdef MTK_FB_MMDVFS_SUPPORT
 struct pm_qos_request primary_display_qos_request;
 struct pm_qos_request primary_display_emi_opp_request;
@@ -781,6 +784,7 @@ static unsigned int _fps_ctx_get_avg_fps(struct fps_ctx_t *fps_ctx)
 	if (fps_ctx->cur_wnd_sz == 0)
 		return 0;
 	avg_fps = fps_ctx->total / fps_ctx->cur_wnd_sz;
+	display_framerate_main = avg_fps;
 	return avg_fps;
 }
 
@@ -9393,3 +9397,5 @@ int primary_display_set_scenario(int scenario)
 
 	return ret;
 }
+module_param(display_framerate_main, uint, 0664);
+module_param(display_framerate_ext, uint, 0664);
