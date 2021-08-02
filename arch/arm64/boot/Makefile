@@ -28,6 +28,11 @@ DTB_LIST := $(dtb-y)
 endif
 DTB_OBJS := $(addprefix $(obj)/dts/,$(DTB_LIST))
 
+DTBO_NAMES := $(subst $\",,$(CONFIG_BUILD_ARM64_DTB_OVERLAY_IMAGE_NAMES))
+ifneq ($(DTBO_NAMES),)
+DTB_LIST += $(addsuffix .dtbo,$(DTBO_NAMES))
+endif
+
 $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)
 
