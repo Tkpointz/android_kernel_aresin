@@ -30,7 +30,7 @@ MTKCAM_FDVT_PATH := $(MTK_CUSTOM_PATH)/cameraisp/fdvt/5.0
 subdir-ccflags-y += -I$(MTK_CUSTOM_PATH)/cameraisp/fdvt/5.0/inc
 obj-y += 5.0/
 else ifneq (, $(findstring $(FDVT_CURRENT_PLATFORM), $(FDVT_51_PLATFORM)))
-$(info FDVT: Drv use 5.1 folder)
+#$(info FDVT: Drv use 5.1 folder)
 MTKCAM_FDVT_VERSION := 5.1
 MTKCAM_FDVT_PATH := $(MTK_CUSTOM_PATH)/cameraisp/fdvt/5.1
 subdir-ccflags-y += -I$(MTK_CUSTOM_PATH)/cameraisp/fdvt/5.1/inc
