@@ -82,20 +82,11 @@
 
 #define GPIOIRQ 2		//XPT
 
-#ifndef FPC_DRM_INTERFACE_WA
-#include <drm/drm_bridge.h>
-#include <drm/mi_disp_notifier.h>
-#endif
-
 struct regulator *regu_buck;
 
 #ifdef CONFIG_SPI_MT65XX
 extern void mt_spi_enable_master_clk(struct spi_device *spidev);
 extern void mt_spi_disable_master_clk(struct spi_device *spidev);
-#endif
-
-#ifndef FPC_DRM_INTERFACE_WA
-extern int mtk_drm_early_resume(int timeout);
 #endif
 
 #include "teei_fp.h"
@@ -355,13 +346,6 @@ static const struct attribute_group attribute_group = {
 	.attrs = attributes,
 };
 
-#ifndef FPC_DRM_INTERFACE_WA
-static inline void notification_work(struct work_struct *work)
-{
-	mtk_drm_early_resume(FP_UNLOCK_REJECTION_TIMEOUT);
-}
-#endif
-
 static inline irqreturn_t fpc1022_irq_handler(int irq, void *handle)
 {
 	struct fpc1022_data *fpc1022 = handle;
@@ -381,46 +365,11 @@ static inline irqreturn_t fpc1022_irq_handler(int irq, void *handle)
 
 	if (fpc1022->wait_finger_down && fpc1022->fb_black) {
 		fpc1022->wait_finger_down = false;
-#ifndef FPC_DRM_INTERFACE_WA
-		schedule_work(&fpc1022->work);
-#endif
 	}
 
 	return IRQ_HANDLED;
 
 }
-
-#ifndef FPC_DRM_INTERFACE_WA
-static inline int fpc_fb_notif_callback(struct notifier_block *nb,
-				 unsigned long event, void *data)
-{
-	struct fpc1022_data *fpc1022 = container_of(nb, struct fpc1022_data,
-						    fb_notifier);
-	struct fb_event *evdata = data;
-	unsigned int blank;
-
-	if (!fpc1022)
-		return 0;
-
-	if (event != MI_DISP_DPMS_EVENT)
-		return 0;
-
-	if (evdata && evdata->data && event == MI_DISP_DPMS_EVENT) {
-		blank = *(int *)(evdata->data);
-		switch (blank) {
-		case MI_DISP_DPMS_POWERDOWN:
-			fpc1022->fb_black = true;
-			break;
-		case MI_DISP_DPMS_ON:
-			fpc1022->fb_black = false;
-			break;
-		default:
-			break;
-		}
-	}
-	return NOTIFY_OK;
-}
-#endif
 
 static inline int fpc1022_platform_probe(struct platform_device *pldev)
 {
@@ -551,12 +500,6 @@ static inline int fpc1022_platform_probe(struct platform_device *pldev)
 	fpc1022->fb_black = false;
 	fpc1022->wait_finger_down = false;
 
-#ifndef FPC_DRM_INTERFACE_WA
-	INIT_WORK(&fpc1022->work, notification_work);
-	fpc1022->fb_notifier.notifier_call = fpc_fb_notif_callback;
-	mi_disp_register_client(&fpc1022->fb_notifier);
-#endif
-
 	hw_reset(fpc1022);
 
 	return ret;
@@ -586,9 +529,6 @@ static inline int fpc1022_platform_remove(struct platform_device *pldev)
 	struct device *dev = &pldev->dev;
 	struct fpc1022_data *fpc1022 = dev_get_drvdata(dev);
 
-#ifndef FPC_DRM_INTERFACE_WA
-	mi_disp_unregister_client(&fpc1022->fb_notifier);
-#endif
 	sysfs_remove_group(&dev->kobj, &attribute_group);
 
 	mutex_destroy(&fpc1022->lock);
