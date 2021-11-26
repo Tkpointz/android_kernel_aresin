@@ -2289,7 +2289,7 @@ static void cabc_backled_data_notification_work(struct work_struct *work)
 		backled_state_data[1] = device->cabc_backled_data;
 		backled_state_data[2] = 0;
 		backled_state_data[3] = 0;
-		pr_info("cabc_backlight_data_notification_work [%d, %d, %d, %d]\n",
+		pr_debug("cabc_backlight_data_notification_work [%d, %d, %d, %d]\n",
 			backled_state_data[0], backled_state_data[1],backled_state_data[2], backled_state_data[3]);
 
 		length = sizeof(backled_state_data);
