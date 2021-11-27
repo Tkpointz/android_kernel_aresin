@@ -57,10 +57,10 @@ struct sg_table *ion_fb_heap_map_dma(struct ion_heap *heap,
 	struct ion_fb_buffer_info *buffer_info =
 	    (struct ion_fb_buffer_info *)buffer->priv_virt;
 
-	table = kzalloc(sizeof(*table), GFP_KERNEL);
+	table = kzalloc(sizeof(*table), GFP_DMA);
 	if (!table)
 		return ERR_PTR(-ENOMEM);
-	ret = sg_alloc_table(table, 1, GFP_KERNEL);
+	ret = sg_alloc_table(table, 1, GFP_DMA);
 	if (ret) {
 		kfree(table);
 		return ERR_PTR(ret);
