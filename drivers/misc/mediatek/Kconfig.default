@@ -9,7 +9,6 @@ config ANDROID_DEFAULT_SETTING
 	select ARM64_PAN
 	select ARMV8_DEPRECATED if COMPAT
 	select ASHMEM
-	select AUDIT
 	select BINFMT_ELF
 	select BINFMT_SCRIPT
 	select BLK_DEV_INITRD
@@ -276,8 +275,6 @@ config ANDROID_DEFAULT_SETTING
 
 config MTK_ANDROID_DEFAULT_SETTING
 	bool "Select MTK android common setting by default"
-	select HW_RANDOM
-	select HW_RANDOM_MT67XX
 	select MTK_AEE_AED
 	select MTK_AEE_IPANIC if MTK_RAM_CONSOLE
 	select MTK_MIX_DEVICES
