@@ -112,6 +112,7 @@ endif
         export WLAN_CHIP_ID=$(MTK_PLATFORM_ID)
         export MTK_ANDROID_WMT=y
         export MTK_ANDROID_EMI=y
+	export ADAPTOR_OPTS=$(MTK_COMBO_CHIP)
 
         WLAN_IP_SET_1_SERIES := 6765 6761 6885 6893
         WLAN_IP_SET_2_SERIES := 3967 6785
