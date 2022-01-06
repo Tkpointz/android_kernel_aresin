@@ -12,8 +12,13 @@ CFLAGS_REMOVE_insn.o = -pg
 CFLAGS_REMOVE_patch.o = -pg
 endif
 
-CFLAGS_REMOVE_return_address.o = -pg
+ifeq ($(cc-name),clang)
+ccflags-y += -DCONFIG_CC_IS_CLANG
+endif
 
+CFLAGS_REMOVE_return_address.o = -pg
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/mtprof/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/
 # Object file lists.
 
 obj-y		:= elf.o entry-common.o irq.o opcodes.o \
