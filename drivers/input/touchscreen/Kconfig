@@ -9,8 +9,12 @@ menuconfig INPUT_TOUCHSCREEN
 
 	  If unsure, say Y.
 
+source "drivers/input/touchscreen/mediatek/Kconfig"
+
 if INPUT_TOUCHSCREEN
 
+source "drivers/input/touchscreen/focaltech_spi/Kconfig"
+source "drivers/input/touchscreen/xiaomi/Kconfig"
 config TOUCHSCREEN_PROPERTIES
 	def_tristate INPUT
 	depends on INPUT
@@ -1245,5 +1249,12 @@ config TOUCHSCREEN_ROHM_BU21023
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called bu21023_ts.
+
+config TOUCHSCREEN_MTK_TOUCH
+       string "Touch IC name for Mediatek package"
+       help
+         Set touch IC name if you have touch panel.
+
+         To compile this dirver for used touch IC.
 
 endif
