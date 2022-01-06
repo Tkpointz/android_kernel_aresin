@@ -1082,6 +1082,10 @@ static struct buffer_head *
 __getblk_slow(struct block_device *bdev, sector_t block,
 	     unsigned size, gfp_t gfp)
 {
+#ifdef CONFIG_ZONE_MOVABLE_CMA
+	/* __GFP_MOVABLE is not allowed for buffer_head */
+	gfp &= ~__GFP_MOVABLE;
+#endif
 	/* Size must be multiple of hard sectorsize */
 	if (unlikely(size & (bdev_logical_block_size(bdev)-1) ||
 			(size < 512 || size > PAGE_SIZE))) {
@@ -3153,7 +3157,6 @@ static int submit_bh_wbc(int op, int op_flags, struct buffer_head *bh,
 
 	bio->bi_end_io = end_bio_bh_io_sync;
 	bio->bi_private = bh;
-
 	/* Take care of bh's that straddle the end of the device */
 	guard_bio_eod(op, bio);
 
@@ -3194,7 +3197,7 @@ EXPORT_SYMBOL(submit_bh);
  *
  * ll_rw_block sets b_end_io to simple completion handler that marks
  * the buffer up-to-date (if appropriate), unlocks the buffer and wakes
- * any waiters. 
+ * any waiters.
  *
  * All of the buffers must be for the same device, and must also be a
  * multiple of the current approved size for the device.
