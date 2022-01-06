@@ -3,11 +3,15 @@
 #define __USBAUDIO_CARD_H
 
 #define MAX_NR_RATES	1024
-#define MAX_PACKS	6		/* per URB */
+#define MAX_PACKS	10		/* per URB */
 #define MAX_PACKS_HS	(MAX_PACKS * 8)	/* in high speed mode */
-#define MAX_URBS	12
+#define MAX_URBS	8
 #define SYNC_URBS	4	/* always four urbs for sync */
-#define MAX_QUEUE	18	/* try not to exceed this queue length, in ms */
+#define MAX_QUEUE	32	/* try not to exceed this queue length, in ms */
+#define MAX_QUEUE_HS	30	/* try not to exceed this queue length, in ms */
+#define LOW_LATENCY_MAX_QUEUE   6 /* for low latency case queue length */
+#define US_PER_FRAME	125	/* high speed has 125 us per (micro) frame */
+#define PM_QOS_COUNT	8	/* pm qos requested count */
 
 struct audioformat {
 	struct list_head list;
@@ -79,7 +83,10 @@ struct snd_usb_endpoint {
 	unsigned long unlink_mask;	/* bitmask of unlinked urbs */
 	char *syncbuf;			/* sync buffer for all sync URBs */
 	dma_addr_t sync_dma;		/* DMA address of syncbuf */
-
+	int syncbuf_sram;		/* sync buffer on sram */
+	char *databuf;			/* data buffer for all sync URBs */
+	dma_addr_t data_dma;		/* DMA address of data */
+	int databuf_sram;		/* data buffer on sram */
 	unsigned int pipe;		/* the data i/o pipe */
 	unsigned int framesize[2];	/* small/large frame sizes in samples */
 	unsigned int sample_rem;	/* remainder from division fs/fps */
@@ -161,6 +168,7 @@ struct snd_usb_substream {
 	} dsd_dop;
 
 	bool trigger_tstamp_pending_update; /* trigger timestamp being updated from initial estimate */
+	struct pm_qos_request pm_qos; /* for qos requests */
 };
 
 struct snd_usb_stream {
