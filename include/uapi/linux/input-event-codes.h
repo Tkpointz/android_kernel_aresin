@@ -7,6 +7,7 @@
  * files. As such this file MUST only contain comments and defines.
  *
  * Copyright (c) 1999-2002 Vojtech Pavlik
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Copyright (c) 2015 Hans de Goede <hdegoede@redhat.com>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -793,7 +794,7 @@
 #define SW_LINEIN_INSERT	0x0d  /* set = inserted */
 #define SW_MUTE_DEVICE		0x0e  /* set = device disabled */
 #define SW_PEN_INSERTED		0x0f  /* set = pen inserted */
-#define SW_MAX			0x0f
+#define SW_MAX			0x20
 #define SW_CNT			(SW_MAX+1)
 
 /*
