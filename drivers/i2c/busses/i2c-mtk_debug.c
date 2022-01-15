@@ -540,18 +540,13 @@ static ssize_t set_config(struct device *dev, struct device_attribute *attr,
 			if (adap) {
 				struct mt_i2c *i2c = i2c_get_adapdata(adap);
 
-				if (operation == 3) {
-					i2c_dump_info(i2c);
-				} else if (operation == 4) {
+				if (operation == 4) {
 					i2c_test_reg(bus_id, 0);
-					i2c_dump_info(i2c);
 					i2c_test_reg(bus_id, 0xFFFFFFFF);
-					i2c_dump_info(i2c);
 				} else if (operation == 5) {
 					i2c_ext_conf_test(bus_id, address);
 				} else if (operation == 9) {
 					i2c_soft_reset(bus_id);
-					i2c_dump_info(i2c);
 				} else if (operation == 6) {
 					mt_i2c_test_multi_wr(bus_id, address);
 					if (bus_id == 0) {
