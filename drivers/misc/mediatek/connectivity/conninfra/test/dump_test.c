@@ -102,7 +102,7 @@ static int dump_test_reg_readable(void)
 
 static void dump_test_poll_cpu_pcr(unsigned  int times, unsigned int sleep)
 {
-	pr_info("[%s]\n", __func__);
+	pr_debug("[%s]\n", __func__);
 }
 
 #define TEST_STRING	"this is coredump test"
@@ -115,30 +115,30 @@ static int coredump_test_start(void)
 		return 1;
 	}
 #if 0
-	pr_info("[%s] tc[0] test case\n", __func__);
+	pr_debug("[%s] tc[0] test case\n", __func__);
 	/* Trigger interrupt */
 	connsys_coredump_setup_tc(g_dumpCtx, 0);
 
 	/* Start to dump */
 	connsys_coredump_start(g_dumpCtx, 0);
 
-	pr_info("[%s] sleep\n", __func__);
+	pr_debug("[%s] sleep\n", __func__);
 	msleep(5000);
 
-	pr_info("[%s] tc[1] test case\n", __func__);
+	pr_debug("[%s] tc[1] test case\n", __func__);
 	/* Trigger interrupt */
 	connsys_coredump_setup_tc(g_dumpCtx, 1);
 	/* Start to dump */
 	connsys_coredump_start(g_dumpCtx, 0);
 
-	pr_info("[%s] tc[2] test case\n", __func__);
+	pr_debug("[%s] tc[2] test case\n", __func__);
 	/* Trigger interrupt */
 	connsys_coredump_setup_tc(g_dumpCtx, 2);
 	/* Start to dump */
 	connsys_coredump_start(g_dumpCtx, 0);
 #endif
 
-	pr_info("[%s] end\n", __func__);
+	pr_debug("[%s] end\n", __func__);
 	return 0;
 
 }
@@ -149,9 +149,9 @@ static int coredump_nl_start(void)
 
 
 	ret = conndump_netlink_send_to_native(CONN_DEBUG_TYPE_WIFI, "[M]", TEST_STRING, osal_strlen(TEST_STRING));
-	pr_info("send ret=%d", ret);
+	pr_debug("send ret=%d", ret);
 	ret = conndump_netlink_send_to_native(CONN_DEBUG_TYPE_WIFI, "[EMI]", NULL, 0);
-	pr_info("send emi dump ret=%d", ret);
+	pr_debug("send emi dump ret=%d", ret);
 	return 0;
 }
 
@@ -171,7 +171,7 @@ static int coredump_test_init(void)
 		return 2;
 	}
 
-	pr_info("emi_addr=0x%08x, size=%d", emi_addr, emi_size);
+	pr_debug("emi_addr=0x%08x, size=%d", emi_addr, emi_size);
 
 	g_dumpCtx = connsys_coredump_init(
 		CONN_DEBUG_TYPE_WIFI, &g_cb);
@@ -186,7 +186,7 @@ static int coredump_test_init(void)
 }
 
 static void coredump_end_cb(void* ctx) {
-	pr_info("Get dump end");
+	pr_debug("Get dump end");
 }
 
 static int coredump_nl_init(void)
@@ -197,7 +197,7 @@ static int coredump_nl_init(void)
 	if (!nl_init) {
 		nl_cb.coredump_end = coredump_end_cb;
 		ret = conndump_netlink_init(CONN_DEBUG_TYPE_WIFI, NULL, &nl_cb);
-		pr_info("init get %d", ret);
+		pr_debug("init get %d", ret);
 		nl_init = 1;
 	}
 	return 0;
@@ -225,7 +225,7 @@ int opfunc_test_1(struct msg_op_data *op)
 	int tc = op->op_data[0];
 	int ret = 0;
 
-	pr_info("[%s] param=[%d]", __func__, tc);
+	pr_debug("[%s] param=[%d]", __func__, tc);
 	switch (tc) {
 		case 0:
 			ret = coredump_test_init();
@@ -237,7 +237,7 @@ int opfunc_test_1(struct msg_op_data *op)
 			ret = coredump_test_deinit();
 			break;
 	}
-	pr_info("ret = %d", ret);
+	pr_debug("ret = %d", ret);
 	return 0;
 }
 
@@ -246,7 +246,7 @@ int opfunc_test_2(struct msg_op_data *op)
 	int tc = op->op_data[0];
 	int ret = 0;
 
-	pr_info("[%s] param=[%d]", __func__, tc);
+	pr_debug("[%s] param=[%d]", __func__, tc);
 
 	switch (tc) {
 		case 0:
@@ -259,13 +259,13 @@ int opfunc_test_2(struct msg_op_data *op)
 			ret = coredump_nl_deinit();
 			break;
 	}
-	pr_info("ret = %d", ret);
+	pr_debug("ret = %d", ret);
 	return 0;
 }
 
 int coredump_test(int par1, int par2, int par3)
 {
-	pr_info("Disable coredump test in SQC\n");
+	pr_debug("Disable coredump test in SQC\n");
 	init = 1;
 	return 0;
 #if 0
@@ -277,7 +277,7 @@ int coredump_test(int par1, int par2, int par3)
 		init = 1;
 	}
 	if (par2 == 0xff && par3 == 0xff && init) {
-		pr_info("End test");
+		pr_debug("End test");
 		msg_thread_deinit(&g_msg_ctx);
 		init = 0;
 	}

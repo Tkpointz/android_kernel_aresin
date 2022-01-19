@@ -74,14 +74,14 @@
 
 int pre_cal_power_on_handler(void)
 {
-	pr_info("[%s] ===========", __func__);
+	pr_debug("[%s] ===========", __func__);
 	osal_sleep_ms(100);
 	return 0;
 }
 
 int pre_cal_do_cal_handler(void)
 {
-	pr_info("[%s] ===========", __func__);
+	pr_debug("[%s] ===========", __func__);
 	return 0;
 }
 
@@ -98,7 +98,7 @@ int calibration_test(void)
 	g_cal_drv_ops_cb.pre_cal_cb.do_cal_cb = pre_cal_do_cal_handler;
 
 
-	pr_info("[%s] cb init [%p][%p]", __func__,
+	pr_debug("[%s] cb init [%p][%p]", __func__,
 				g_cal_drv_ops_cb.pre_cal_cb.pwr_on_cb,
 				g_cal_drv_ops_cb.pre_cal_cb.do_cal_cb);
 
@@ -115,7 +115,7 @@ int calibration_test(void)
 
 	conninfra_sub_drv_ops_unregister(CONNDRV_TYPE_BT);
 	conninfra_sub_drv_ops_unregister(CONNDRV_TYPE_WIFI);
-	pr_info("[%s] finish.", __func__);
+	pr_debug("[%s] finish.", __func__);
 	return 0;
 }
 

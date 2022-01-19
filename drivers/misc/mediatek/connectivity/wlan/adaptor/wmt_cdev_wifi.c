@@ -53,27 +53,27 @@ uint32_t gDbgLevel = WIFI_LOG_DBG;
 #define WIFI_DBG_FUNC(fmt, arg...)	\
 	do { \
 		if (gDbgLevel >= WIFI_LOG_DBG) \
-			pr_info(PFX "%s[D]: " fmt, __func__, ##arg); \
+			pr_debug(PFX "%s[D]: " fmt, __func__, ##arg); \
 	} while (0)
 #define WIFI_INFO_FUNC(fmt, arg...)	\
 	do { \
 		if (gDbgLevel >= WIFI_LOG_INFO) \
-			pr_info(PFX "%s[I]: " fmt, __func__, ##arg); \
+			pr_debug(PFX "%s[I]: " fmt, __func__, ##arg); \
 	} while (0)
 #define WIFI_INFO_FUNC_LIMITED(fmt, arg...)	\
 	do { \
 		if (gDbgLevel >= WIFI_LOG_INFO) \
-			pr_info_ratelimited(PFX "%s[L]: " fmt, __func__, ##arg); \
+			pr_debug_ratelimited(PFX "%s[L]: " fmt, __func__, ##arg); \
 	} while (0)
 #define WIFI_WARN_FUNC(fmt, arg...)	\
 	do { \
 		if (gDbgLevel >= WIFI_LOG_WARN) \
-			pr_info(PFX "%s[W]: " fmt, __func__, ##arg); \
+			pr_warn(PFX "%s[W]: " fmt, __func__, ##arg); \
 	} while (0)
 #define WIFI_ERR_FUNC(fmt, arg...)	\
 	do { \
 		if (gDbgLevel >= WIFI_LOG_ERR) \
-			pr_info(PFX "%s[E]: " fmt, __func__, ##arg); \
+			pr_err(PFX "%s[E]: " fmt, __func__, ##arg); \
 	} while (0)
 
 #define VERSION "2.0"

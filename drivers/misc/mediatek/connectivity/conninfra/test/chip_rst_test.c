@@ -73,22 +73,22 @@
 
 int pre_chip_rst_handler(enum consys_drv_type drv, char* reason)
 {
-	pr_info("[%s] ===========", __func__);
+	pr_debug("[%s] ===========", __func__);
 	osal_sleep_ms(100);
 	return 0;
 }
 
 int post_chip_rst_handler(void)
 {
-	pr_info("[%s] ===========", __func__);
+	pr_debug("[%s] ===========", __func__);
 	return 0;
 }
 
 int pre_chip_rst_timeout_handler(enum consys_drv_type drv, char* reason)
 {
-	pr_info("[%s] ++++++++++++", __func__);
+	pr_debug("[%s] ++++++++++++", __func__);
 	osal_sleep_ms(800);
-	pr_info("[%s] ------------", __func__);
+	pr_debug("[%s] ------------", __func__);
 	return 0;
 }
 
@@ -108,7 +108,7 @@ int chip_rst_test(void)
 	g_drv_timeout_ops_cb.rst_cb.pre_whole_chip_rst = pre_chip_rst_timeout_handler;
 	g_drv_timeout_ops_cb.rst_cb.post_whole_chip_rst = post_chip_rst_handler;
 
-	pr_info("[%s] cb init [%p][%p]", __func__,
+	pr_debug("[%s] cb init [%p][%p]", __func__,
 				g_drv_ops_cb.rst_cb.pre_whole_chip_rst,
 				g_drv_ops_cb.rst_cb.post_whole_chip_rst);
 
@@ -116,28 +116,28 @@ int chip_rst_test(void)
 	conninfra_sub_drv_ops_register(CONNDRV_TYPE_WIFI, &g_drv_ops_cb);
 	conninfra_sub_drv_ops_register(CONNDRV_TYPE_FM, &g_drv_timeout_ops_cb);
 
-	pr_info("[%s] ++++++++++++++++++++++", __func__);
+	pr_debug("[%s] ++++++++++++++++++++++", __func__);
 
 	ret = conninfra_trigger_whole_chip_rst(CONNDRV_TYPE_BT, "test reset");
 	if (ret)
 		pr_warn("[%s] fail [%d]", __func__, ret);
 	else
-		pr_info("Trigger chip reset success. Test pass.");
+		pr_debug("Trigger chip reset success. Test pass.");
 	osal_sleep_ms(10);
 
-	pr_info("Try to trigger whole chip reset when reset is ongoing. It should be fail.");
+	pr_debug("Try to trigger whole chip reset when reset is ongoing. It should be fail.");
 	ret = conninfra_trigger_whole_chip_rst(CONNDRV_TYPE_BT, "test reset");
-	pr_info("Test %s. ret = %d.", ret == 1? "pass": "fail", ret);
+	pr_debug("Test %s. ret = %d.", ret == 1? "pass": "fail", ret);
 
-	pr_info("Try to funcion on when reset is ongoing. It should be fail.");
+	pr_debug("Try to funcion on when reset is ongoing. It should be fail.");
 	ret = conninfra_pwr_on(CONNDRV_TYPE_WIFI);
-	pr_info("Test %s. ret = %d.", ret == CONNINFRA_ERR_RST_ONGOING ? "pass": "fail", ret);
+	pr_debug("Test %s. ret = %d.", ret == CONNINFRA_ERR_RST_ONGOING ? "pass": "fail", ret);
 
 	osal_sleep_ms(3000);
 
 	conninfra_sub_drv_ops_unregister(CONNDRV_TYPE_BT);
 	conninfra_sub_drv_ops_unregister(CONNDRV_TYPE_WIFI);
-	pr_info("chip_rst_test finish");
+	pr_debug("chip_rst_test finish");
 	return 0;
 }
 

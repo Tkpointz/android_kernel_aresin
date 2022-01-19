@@ -218,7 +218,7 @@ static int connlog_emi_init(struct connlog_dev* handler, phys_addr_t emiaddr, un
 			type_to_title[conn_type], emiaddr, emi_size);
 		return -1;
 	}
-	pr_info("input size = %d cal_size = %d\n", emi_size, cal_log_size);
+	pr_debug("input size = %d cal_size = %d\n", emi_size, cal_log_size);
 
 	handler->phyAddrEmiBase = emiaddr;
 	handler->emi_size = emi_size;
@@ -231,7 +231,7 @@ static int connlog_emi_init(struct connlog_dev* handler, phys_addr_t emiaddr, un
 	handler->log_offset.emi_guard_pattern_offset = handler->log_offset.emi_buf + handler->log_offset.emi_size;
 
 	if (handler->virAddrEmiLogBase) {
-		pr_info("[%s] EMI mapping OK virtual(0x%p) physical(0x%x) size=%d\n",
+		pr_debug("[%s] EMI mapping OK virtual(0x%p) physical(0x%x) size=%d\n",
 			type_to_title[conn_type],
 			handler->virAddrEmiLogBase,
 			(unsigned int)handler->phyAddrEmiBase,
@@ -286,7 +286,7 @@ static int connlog_buffer_init(struct connlog_dev* handler)
 	/* TODO: use emi size. Need confirm */
 	pBuffer = connlog_cache_allocate(handler->emi_size);
 	if (pBuffer == NULL) {
-		pr_info("[%s] allocate cache fail.", __func__);
+		pr_debug("[%s] allocate cache fail.", __func__);
 		return -ENOMEM;
 	}
 
@@ -314,7 +314,7 @@ static int connlog_ring_buffer_init(struct connlog_dev* handler)
 	/* TODO: use emi size. Need confirm */
 	pBuffer = connlog_cache_allocate(handler->emi_size);
 	if (pBuffer == NULL) {
-		pr_info("[%s] allocate ring buffer fail.", __func__);
+		pr_debug("[%s] allocate ring buffer fail.", __func__);
 		return -ENOMEM;
 	}
 	handler->log_data = pBuffer;
@@ -397,7 +397,7 @@ void connsys_log_dump_buf(const char *title, const char *buf, ssize_t sz)
 				memset(line+i*3, ' ', (BYETES_PER_LINE-i)*3);
 				memset(line+3*BYETES_PER_LINE+i, '.', BYETES_PER_LINE-i);
 			}
-			pr_info("%s: %s\n", title, line);
+			pr_debug("%s: %s\n", title, line);
 			i = 0;
 		}
 	}
@@ -529,7 +529,7 @@ static void connlog_ring_emi_to_cache(struct connlog_dev* handler)
 		#ifndef DEBUG_LOG_ON
 			if (__ratelimit(&_rs2))
 		#endif
-				pr_info("%s: ring_emi_seg.sz=%d, ring_cache_pt=%p, ring_cache_seg.sz=%d\n",
+				pr_debug("%s: ring_emi_seg.sz=%d, ring_cache_pt=%p, ring_cache_seg.sz=%d\n",
 					type_to_title[handler->conn_type], ring_emi_seg.sz, ring_cache_seg.ring_pt,
 					ring_cache_seg.sz);
 			memcpy_fromio(ring_cache_seg.ring_pt, ring_emi_seg.ring_emi_pt + ring_cache_seg.data_pos,
@@ -574,7 +574,7 @@ static void connlog_fw_log_parser(struct connlog_dev* handler, ssize_t sz)
 				print_len = buf_len >= LOG_MAX_LEN ? LOG_MAX_LEN - 1 : buf_len;
 				memcpy(log_line, buf + LOG_HEAD_LENG, print_len);
 				log_line[print_len] = 0;
-				pr_info("%s: %s\n", type_to_title[conn_type], log_line);
+				pr_debug("%s: %s\n", type_to_title[conn_type], log_line);
 				sz -= (LOG_HEAD_LENG + buf_len);
 				buf += (LOG_HEAD_LENG + buf_len);
 				continue;
@@ -583,7 +583,7 @@ static void connlog_fw_log_parser(struct connlog_dev* handler, ssize_t sz)
 				memcpy(&systime, buf + 28, sizeof(systime));
 				memcpy(&utc_s, buf + 32, sizeof(utc_s));
 				memcpy(&utc_us, buf + 36, sizeof(utc_us));
-				pr_info("%s: timesync :  (%u) %u.%06u\n",
+				pr_debug("%s: timesync :  (%u) %u.%06u\n",
 					type_to_title[conn_type], systime, utc_s, utc_us);
 				sz -= TIMESYNC_LENG;
 				buf += TIMESYNC_LENG;
@@ -666,14 +666,14 @@ static void connlog_log_data_handler(struct work_struct *work)
 #ifndef DEBUG_LOG_ON
 		if (__ratelimit(&_rs))
 #endif
-			pr_info("[connlog] %s emi ring is empty!\n",
+			pr_debug("[connlog] %s emi ring is empty!\n",
 				type_to_title[handler->conn_type]);
 	}
 
 #ifndef DEBUG_LOG_ON
 	if (__ratelimit(&_rs2))
 #endif
-		pr_info("[connlog] %s irq counter = %d\n",
+		pr_debug("[connlog] %s irq counter = %d\n",
 			type_to_title[handler->conn_type],
 			EMI_READ32(handler->virAddrEmiLogBase + CONNLOG_IRQ_COUNTER_BASE));
 
@@ -766,7 +766,7 @@ static ssize_t connlog_read_internal(
 		cache_buf_size -= ring_seg.sz;
 		written += ring_seg.sz;
 		if (__ratelimit(&_rs2))
-			pr_info("[%s] copy %d to %s\n",
+			pr_debug("[%s] copy %d to %s\n",
 				type_to_title[conn_type],
 				ring_seg.sz,
 				(to_user? "user space" : "buffer"));
@@ -1008,7 +1008,7 @@ int connsys_log_init(int conn_type)
 
 	log_start_addr = emi_config->log_offset + gPhyEmiBase;
 	log_size = emi_config->log_size;
-	pr_info("%s init. Base=%p size=%d\n",
+	pr_debug("%s init. Base=%p size=%d\n",
 		type_to_title[conn_type], log_start_addr, log_size);
 
 	handler = connlog_subsys_init(conn_type, log_start_addr, log_size);
@@ -1106,13 +1106,13 @@ static int connlog_set_alarm_timer(void)
 	kt = ktime_set(gLogAlarm.alarm_sec, 0);
 	alarm_start_relative(&gLogAlarm.alarm_timer, kt);
 
-	pr_info("[connsys_log_alarm] alarm timer enabled timeout=[%d]", gLogAlarm.alarm_sec);
+	pr_debug("[connsys_log_alarm] alarm timer enabled timeout=[%d]", gLogAlarm.alarm_sec);
 	return 0;
 }
 
 static int connlog_cancel_alarm_timer(void)
 {
-	pr_info("[connsys_log_alarm] alarm timer cancel");
+	pr_debug("[connsys_log_alarm] alarm timer cancel");
 	return alarm_cancel(&gLogAlarm.alarm_timer);
 }
 
@@ -1127,7 +1127,7 @@ static enum alarmtimer_restart connlog_alarm_timer_handler(struct alarm *alarm,
 
 	connsys_log_get_utc_time(&tsec, &tusec);
 	rtc_time_to_tm(tsec, &tm);
-	pr_info("[connsys_log_alarm] alarm_timer triggered [%d-%02d-%02d %02d:%02d:%02d.%09u]"
+	pr_debug("[connsys_log_alarm] alarm_timer triggered [%d-%02d-%02d %02d:%02d:%02d.%09u]"
 			, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
 			, tm.tm_hour, tm.tm_min, tm.tm_sec, tusec);
 
@@ -1177,7 +1177,7 @@ int connsys_dedicated_log_path_alarm_enable(unsigned int sec)
 	gLogAlarm.alarm_sec = sec;
 	if (!connlog_is_alarm_enable()) {
 		gLogAlarm.alarm_state = CONNLOG_ALARM_STATE_ENABLE;
-		pr_info("[connsys_log_alarm] alarm timer enabled timeout=[%d]", sec);
+		pr_debug("[connsys_log_alarm] alarm timer enabled timeout=[%d]", sec);
 	}
 	if (gLogAlarm.blank_state == 0)
 		connlog_set_alarm_timer();
@@ -1209,7 +1209,7 @@ int connsys_dedicated_log_path_alarm_disable(void)
 	if (connlog_is_alarm_enable()) {
 		ret = connlog_cancel_alarm_timer();
 		gLogAlarm.alarm_state = CONNLOG_ALARM_STATE_ENABLE;
-		pr_info("[connsys_log_alarm] alarm timer disable ret=%d", ret);
+		pr_debug("[connsys_log_alarm] alarm timer disable ret=%d", ret);
 	}
 	spin_unlock_irqrestore(&gLogAlarm.alarm_lock, gLogAlarm.flags);
 	return 0;

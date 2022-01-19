@@ -142,7 +142,7 @@ static int consys_plt_pmic_event_notifier(unsigned int id, unsigned int event)
 	static int oc_counter = 0;
 
 	oc_counter++;
-	pr_info("[%s] VCN13 OC times: %d\n", __func__, oc_counter);
+	pr_debug("[%s] VCN13 OC times: %d\n", __func__, oc_counter);
 
 	consys_plt_pmic_ctrl_dump("VCN13 OC");
 	return NOTIFY_OK;
@@ -167,7 +167,7 @@ int consys_plt_pmic_ctrl_dump(const char* tag)
 	consys_hw_is_bus_hang();
 	ret = consys_hw_force_conninfra_wakeup();
 	if (ret) {
-		pr_info("[%s] force conninfra wakeup fail\n", __func__);
+		pr_debug("[%s] force conninfra wakeup fail\n", __func__);
 		return 0;
 	}
 
@@ -176,10 +176,10 @@ int consys_plt_pmic_ctrl_dump(const char* tag)
 	if (consys_sema_acquire_timeout(CONN_SEMA_CONN_INFRA_COMMON_SYSRAM_INDEX, CONN_SEMA_TIMEOUT) == CONN_SEMA_GET_SUCCESS) {
 		value3 = CONSYS_REG_READ(CONN_INFRA_SYSRAM_BASE_ADDR + CONN_INFRA_SYSRAM_SW_CR_A_DIE_TOP_CK_EN_CTRL);
 		consys_sema_release(CONN_SEMA_CONN_INFRA_COMMON_SYSRAM_INDEX);
-		pr_info("[%s] D-die: 0x1800_1900:0x%08x 0x1800_50A8:0x%08x 0x1805_2830:0x%08x\n",
+		pr_debug("[%s] D-die: 0x1800_1900:0x%08x 0x1800_50A8:0x%08x 0x1805_2830:0x%08x\n",
 			(tag == NULL?__func__:tag), value1, value2, value3);
 	} else {
-		pr_info("[%s] D-die: 0x1800_1900:0x%08x 0x1800_50A8:0x%08x\n",
+		pr_debug("[%s] D-die: 0x1800_1900:0x%08x 0x1800_50A8:0x%08x\n",
 			(tag == NULL?__func__:tag), value1, value2);
 	}
 
@@ -188,7 +188,7 @@ int consys_plt_pmic_ctrl_dump(const char* tag)
 		if (snprintf(tmp, LOG_TMP_BUF_SZ, " [0x%04x: 0x%08x]", adie_cr_list[index], adie_value) >= 0)
 			strncat(tmp_buf, tmp, strlen(tmp));
 	}
-	pr_info("[%s] ATOP:%s\n", (tag == NULL?__func__:tag), tmp_buf);
+	pr_debug("[%s] ATOP:%s\n", (tag == NULL?__func__:tag), tmp_buf);
 	consys_hw_force_conninfra_sleep();
 
 	return 0;
@@ -207,7 +207,7 @@ int consys_plt_pmic_get_from_dts(struct platform_device *pdev, struct conninfra_
 		vcn13_nb.notifier_call = consys_vcn13_oc_notify;
 		ret = devm_regulator_register_notifier(reg_VCN13, &vcn13_nb);
 		if (ret) {
-			pr_info("VCN13 regulator notifier request failed\n");
+			pr_debug("VCN13 regulator notifier request failed\n");
 		}
 		/* Set VS2 to 1.4625V */
 		KERNEL_pmic_set_register_value(PMIC_RG_BUCK_VS2_VOSEL, 0x35);

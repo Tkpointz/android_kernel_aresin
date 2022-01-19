@@ -115,7 +115,7 @@ static OSAL_SLEEPABLE_LOCK g_dump_lock;
 #if CONNINFRA_DBG_SUPPORT
 int conninfra_dbg_hwver_get(int par1, int par2, int par3)
 {
-	pr_info("query chip version\n");
+	pr_debug("query chip version\n");
 	/* TODO: */
 	return 0;
 }
@@ -150,10 +150,10 @@ int conninfra_dbg_reg_read(int par1, int par2, int par3)
 			"read chip register (0x%08x) with mask (0x%08x) %s, value = 0x%08x\n",
 			par2, par3, iRet != 0 ? "failed" : "succeed", iRet != 0 ? -1 : value);
 	if (ret < 0) {
-		pr_info("read chip register (0x%08x) with mask (0x%08x) error(%d)\n",
+		pr_debug("read chip register (0x%08x) with mask (0x%08x) error(%d)\n",
 			par2, par3, ret);
 	} else
-		pr_info("%s", buf);
+		pr_debug("%s", buf);
 
 	ret = osal_lock_sleepable_lock(&g_dump_lock);
 	if (ret) {
@@ -181,7 +181,7 @@ int conninfra_dbg_reg_write(int par1, int par2, int par3)
 	int ret;
 
 	ret = conninfra_core_reg_write(par2, par3, 0xffffffff);
-	pr_info("write chip register (0x%08x) with value (0x%08x) %s\n",
+	pr_debug("write chip register (0x%08x) with value (0x%08x) %s\n",
 		      par2, par3, ret != 0 ? "failed" : "succeed");
 	return 0;
 }
@@ -193,9 +193,9 @@ int conninfra_dbg_force_conninfra_wakeup(int par1, int par2, int par3)
 
 	ret = conninfra_core_force_conninfra_wakeup();
 	if (ret)
-		pr_info("conninfra wakup fail\n");
+		pr_debug("conninfra wakup fail\n");
 	else
-		pr_info("conninfra wakup success\n");
+		pr_debug("conninfra wakup success\n");
 
 	return 0;
 }
@@ -206,9 +206,9 @@ int conninfra_dbg_force_conninfra_sleep(int par1, int par2, int par3)
 
 	ret = conninfra_core_force_conninfra_sleep();
 	if (ret)
-		pr_info("conninfra sleep fail\n");
+		pr_debug("conninfra sleep fail\n");
 	else
-		pr_info("conninfra sleep success\n");
+		pr_debug("conninfra sleep success\n");
 
 	return 0;
 }
@@ -222,7 +222,7 @@ int conninfra_dbg_efuse_read(int par1, int par2, int par3)
 	Uint iRet = -1;
 
 	iRet = wmt_lib_efuse_rw(0, par2, &value, par3);
-	pr_info("read combo chip efuse (0x%08x) with mask (0x%08x) %s, value = 0x%08x\n",
+	pr_debug("read combo chip efuse (0x%08x) with mask (0x%08x) %s, value = 0x%08x\n",
 		      par2, par3, iRet != 0 ? "failed" : "succeed", iRet != 0 ? -1 : value);
 #endif
 	return 0;
@@ -236,7 +236,7 @@ int conninfra_dbg_efuse_write(int par1, int par2, int par3)
 	Uint iRet = -1;
 
 	iRet = wmt_lib_efuse_rw(1, par2, &par3, 0xffffffff);
-	pr_info("write combo chip efuse (0x%08x) with value (0x%08x) %s\n",
+	pr_debug("write combo chip efuse (0x%08x) with value (0x%08x) %s\n",
 		      par2, par3, iRet != 0 ? "failed" : "succeed");
 #endif
 	return 0;
@@ -248,11 +248,11 @@ static int conninfra_dbg_ap_reg_read(int par1, int par2, int par3)
 	int value = 0x0;
 	unsigned char *ap_reg_base = NULL;
 
-	pr_info("AP register read, reg address:0x%x\n", par2);
+	pr_debug("AP register read, reg address:0x%x\n", par2);
 	ap_reg_base = ioremap_nocache(par2, 0x4);
 	if (ap_reg_base) {
 		value = readl(ap_reg_base);
-		pr_info("AP register read, reg address:0x%x, value:0x%x\n", par2, value);
+		pr_debug("AP register read, reg address:0x%x, value:0x%x\n", par2, value);
 		iounmap(ap_reg_base);
 	} else
 		pr_err("AP register ioremap fail!\n");
@@ -265,13 +265,13 @@ static int conninfra_dbg_ap_reg_write(int par1, int par2, int par3)
 	int value = 0x0;
 	unsigned char *ap_reg_base = NULL;
 
-	pr_info("AP register write, reg address:0x%x, value:0x%x\n", par2, par3);
+	pr_debug("AP register write, reg address:0x%x, value:0x%x\n", par2, par3);
 
 	ap_reg_base = ioremap_nocache(par2, 0x4);
 	if (ap_reg_base) {
 		writel(par3, ap_reg_base);
 		value = readl(ap_reg_base);
-		pr_info("AP register write done, value after write:0x%x\n", value);
+		pr_debug("AP register write done, value after write:0x%x\n", value);
 		iounmap(ap_reg_base);
 	} else
 		pr_err("AP register ioremap fail!\n");
@@ -332,7 +332,7 @@ static int conninfra_dbg_fw_log_ctrl(int par1, int onoff, int level)
 #if 0
 	UINT8 type = (unsigned char)(onoff >> 16);
 
-	pr_info("Configuring firmware log: type:%d, on/off:%d, level:%d\n",
+	pr_debug("Configuring firmware log: type:%d, on/off:%d, level:%d\n",
 			type, (unsigned char)onoff, (unsigned char)level);
 	//wmt_lib_fw_log_ctrl(type, (unsigned char)onoff, (unsigned char)level);
 #endif
@@ -345,7 +345,7 @@ int conninfra_dbg_thermal_query(int par1, int count, int interval)
 
 	ret = conninfra_core_thermal_query(&temp);
 
-	pr_info("[Conninfra_Thermal_Query] ret=[%d] temp=[%d]", ret, temp);
+	pr_debug("[Conninfra_Thermal_Query] ret=[%d] temp=[%d]", ret, temp);
 
 	return 0;
 }
@@ -355,7 +355,7 @@ int conninfra_dbg_thermal_ctrl(int par1, int par2, int par3)
 #if 0
 	if (par2 == 0) {
 		if (par3 >= 99) {
-			pr_info("Can`t set temp threshold greater or queal 99\n");
+			pr_debug("Can`t set temp threshold greater or queal 99\n");
 			return -1;
 		}
 		wmt_dev_set_temp_threshold(par3);
@@ -387,7 +387,7 @@ static int conninfra_dbg_connsys_emi_dump(int par1, int par2, int par3)
 		return -1;
 	}
 
-	pr_info("EMI dump, offset=0x%x(physical addr=0x%x), size=0x%x\n", par2, start, size);
+	pr_debug("EMI dump, offset=0x%x(physical addr=0x%x), size=0x%x\n", par2, start, size);
 	vir_addr = ioremap_nocache(start, size);
 	if (!vir_addr) {
 		pr_err("ioremap fail");
@@ -396,7 +396,7 @@ static int conninfra_dbg_connsys_emi_dump(int par1, int par2, int par3)
 	}
 	memcpy_fromio(buf, vir_addr, size);
 	for (i = 0; i < size; i+= 16) {
-		pr_info(
+		pr_debug(
 			"EMI[0x%x]: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n",
 			par2 + i,
 			buf[i + 0], buf[i + 1], buf[i + 2], buf[i + 3],
@@ -415,7 +415,7 @@ static int conninfra_dbg_connsys_coredump_ctrl(int par1, int par2, int par3)
 {
 	unsigned int orig_mode = connsys_coredump_get_mode();
 
-	pr_info("Setup coredump mode from %d to %d\n", orig_mode, par2);
+	pr_debug("Setup coredump mode from %d to %d\n", orig_mode, par2);
 	connsys_coredump_set_dump_mode(par2);
 	return 0;
 }
@@ -424,7 +424,7 @@ static int conninfra_dbg_connsys_coredump_mode_query(int par1, int par2, int par
 {
 	unsigned int orig_mode = connsys_coredump_get_mode();
 
-	pr_info("Connsys coredump mode is [%d]\n", orig_mode);
+	pr_debug("Connsys coredump mode is [%d]\n", orig_mode);
 	return orig_mode;
 }
 
@@ -456,7 +456,7 @@ ssize_t conninfra_dbg_read(struct file *filp, char __user *buf, size_t count, lo
 	*f_pos += dump_len;
 	g_dump_buf_len -= dump_len;
 	g_dump_buf_ptr += dump_len;
-	pr_info("conninfra_dbg:after read,wmt for dump info buffer len(%d)\n", g_dump_buf_len);
+	pr_debug("conninfra_dbg:after read,wmt for dump info buffer len(%d)\n", g_dump_buf_len);
 
 	ret = dump_len;
 exit:
@@ -476,7 +476,7 @@ ssize_t conninfra_dbg_write(struct file *filp, const char __user *buffer, size_t
 	long res = 0;
 	static char dbg_enabled;
 
-	pr_info("write parameter len = %d\n\r", (int) len);
+	pr_debug("write parameter len = %d\n\r", (int) len);
 	if (len >= osal_sizeof(buf)) {
 		pr_err("input handling fail!\n");
 		len = osal_sizeof(buf) - 1;
@@ -487,7 +487,7 @@ ssize_t conninfra_dbg_write(struct file *filp, const char __user *buffer, size_t
 		return -EFAULT;
 
 	buf[len] = '\0';
-	pr_info("write parameter data = %s\n\r", buf);
+	pr_debug("write parameter data = %s\n\r", buf);
 
 	pBuf = buf;
 	pToken = osal_strsep(&pBuf, pDelimiter);
@@ -502,7 +502,7 @@ ssize_t conninfra_dbg_write(struct file *filp, const char __user *buffer, size_t
 	if (pToken != NULL) {
 		osal_strtol(pToken, 16, &res);
 		y = (int)res;
-		pr_info("y = 0x%08x\n\r", y);
+		pr_debug("y = 0x%08x\n\r", y);
 	} else {
 		y = 3000;
 		/*efuse, register read write default value */
@@ -521,7 +521,7 @@ ssize_t conninfra_dbg_write(struct file *filp, const char __user *buffer, size_t
 			z = 0xffffffff;
 	}
 
-	pr_info("x(0x%08x), y(0x%08x), z(0x%08x)\n\r", x, y, z);
+	pr_debug("x(0x%08x), y(0x%08x), z(0x%08x)\n\r", x, y, z);
 
 	/* For eng and userdebug load, have to enable wmt_dbg by writing 0xDB9DB9 to
 	 * "/proc/driver/wmt_dbg" to avoid some malicious use
@@ -535,7 +535,7 @@ ssize_t conninfra_dbg_write(struct file *filp, const char __user *buffer, size_t
 	/* For user load, only 0x13 is allowed to execute */
 	/* allow command 0x2e to enable catch connsys log on userload  */
 	if (0 == dbg_enabled && (x != 0x13) && (x != 0x14)) {
-		pr_info("please enable conninfra debug first\n\r");
+		pr_debug("please enable conninfra debug first\n\r");
 		return len;
 	}
 

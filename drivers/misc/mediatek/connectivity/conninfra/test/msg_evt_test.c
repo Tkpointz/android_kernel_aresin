@@ -93,7 +93,7 @@ static const msg_opid_func test_op_func[] = {
 
 int opfunc_test_1(struct msg_op_data *op)
 {
-	pr_info("[%s]", __func__);
+	pr_debug("[%s]", __func__);
 	return 0;
 }
 
@@ -101,7 +101,7 @@ int opfunc_test_2(struct msg_op_data *op)
 {
 	unsigned int drv_type = op->op_data[0];
 
-	pr_info("[%s] param=[%d]", __func__, drv_type);
+	pr_debug("[%s] param=[%d]", __func__, drv_type);
 	return 0;
 }
 
@@ -137,15 +137,15 @@ int msg_evt_test(void)
 
 	osal_sleep_ms(1000);
 
-	pr_info("<<<<<>>>>>>> freeOpq=[%u][%u] ActiveQ=[%u][%u]",
+	pr_debug("<<<<<>>>>>>> freeOpq=[%u][%u] ActiveQ=[%u][%u]",
 			g_ctx.free_op_q.write, g_ctx.free_op_q.read,
 			g_ctx.active_op_q.write, g_ctx.active_op_q.read);
 	osal_sleep_ms(500);
 
 	ret = msg_thread_deinit(&g_ctx);
-	pr_info("[%s] msg_thread_deinit\n", __func__);
+	pr_debug("[%s] msg_thread_deinit\n", __func__);
 
-	pr_info("[%s] test PASS\n", __func__);
+	pr_debug("[%s] test PASS\n", __func__);
 	return 0;
 }
 
