@@ -62,12 +62,12 @@ static char test_buf[TEST_LOG_BUF_SIZE];
 static void connlog_test_event_handler(void)
 {
 	ssize_t read = 0;
-	pr_info("connlog_test_event_handler\n");
+	pr_debug("connlog_test_event_handler\n");
 
 	read = connsys_log_read(CONN_DEBUG_TYPE_WIFI, test_buf, TEST_LOG_BUF_SIZE);
-	pr_info("Read %u:\n", read);
+	pr_debug("Read %u:\n", read);
 	connsys_log_dump_buf("log_test", test_buf, read);
-	pr_info("============================================\n");
+	pr_debug("============================================\n");
 }
 
 int connlog_test_init(void)
@@ -87,7 +87,7 @@ int connlog_test_init(void)
 		pr_err("connsys_dedicated_log_path_apsoc_init should fail\n");
 		return 2;
 	} else {
-		pr_info("connsys_dedicated_log_path_apsoc_init return fail as expection\n");
+		pr_debug("connsys_dedicated_log_path_apsoc_init return fail as expection\n");
 	}
 
 	ret = connsys_log_init(CONN_DEBUG_TYPE_WIFI);

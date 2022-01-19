@@ -1288,7 +1288,7 @@ void osal_buffer_dump(const unsigned char *buf,
 	char str[DBG_LOG_STR_SIZE] = {""};
 	int strlen = 0;
 
-	pr_info("[%s] len=%d, limit=%d, start dump\n", title, len, limit);
+	pr_debug("[%s] len=%d, limit=%d, start dump\n", title, len, limit);
 
 	dump_len = ((limit != 0) && (len > limit)) ? limit : len;
 	for (k = 0; k < dump_len; k++) {
@@ -1299,14 +1299,14 @@ void osal_buffer_dump(const unsigned char *buf,
 			strlen += osal_snprintf(str + strlen, DBG_LOG_STR_SIZE - strlen,
 						"%02x ", buf[k]);
 
-			pr_info("%s", str);
+			pr_debug("%s", str);
 			strlen = 0;
 		}
 	}
 	if (k % 16 != 0)
-		pr_info("%s\n", str);
+		pr_debug("%s\n", str);
 
-	pr_info("end of dump\n");
+	pr_debug("end of dump\n");
 }
 
 void osal_buffer_dump_data(const unsigned int *buf,
@@ -1330,7 +1330,7 @@ void osal_buffer_dump_data(const unsigned int *buf,
 			if (flag)
 				osal_ftrace_print("%s%s", title, str);
 			else
-				pr_info("%s%s", title, str);
+				pr_debug("%s%s", title, str);
 			strlen = 0;
 		}
 	}
@@ -1338,7 +1338,7 @@ void osal_buffer_dump_data(const unsigned int *buf,
 		if (flag)
 			osal_ftrace_print("%s%s", title, str);
 		else
-			pr_info("%s%s", title, str);
+			pr_debug("%s%s", title, str);
 	}
 }
 
@@ -1425,14 +1425,14 @@ static void osal_op_history_print_work(struct work_struct *work)
 	int index = 0;
 
 	if (queue == NULL) {
-		pr_info("queue shouldn't be NULL, %s", log_history->name);
+		pr_debug("queue shouldn't be NULL, %s", log_history->name);
 		return;
 	}
 
 	RING_READ_FOR_EACH_ITEM(RING_SIZE(ring_buffer), seg, ring_buffer) {
 		index = seg.ring_pt - ring_buffer->base;
 		entry = &queue[index];
-		pr_info("(%llu.%06lu) %s: pOp(%p):%u(%d)-%x-%zx,%zx,%zx,%zx\n",
+		pr_debug("(%llu.%06lu) %s: pOp(%p):%u(%d)-%x-%zx,%zx,%zx,%zx\n",
 			entry->ts,
 			entry->usec,
 			log_history->name,
@@ -1480,7 +1480,7 @@ void osal_op_history_print(struct osal_op_history *log_history, char *name)
 	spinlock_t *lock = &(log_history->lock);
 
 	if (log_history->queue == NULL) {
-		pr_info("Queue is NULL, name: %s\n", name);
+		pr_debug("Queue is NULL, name: %s\n", name);
 		return;
 	}
 
@@ -1499,7 +1499,7 @@ void osal_op_history_print(struct osal_op_history *log_history, char *name)
 	if (dump_ring_buffer->base != NULL) {
 		spin_unlock_irqrestore(lock, flags);
 		kfree(queue);
-		pr_info("print is ongoing: %s\n", name);
+		pr_debug("print is ongoing: %s\n", name);
 		return;
 	}
 
@@ -1533,7 +1533,7 @@ void osal_op_history_save(struct osal_op_history *log_history, P_OSAL_OP pOp)
 	}
 
 	if (entry == NULL) {
-		pr_info("Entry is null, size %d\n",
+		pr_debug("Entry is null, size %d\n",
 				RING_SIZE(&log_history->ring_buffer));
 		spin_unlock_irqrestore(&(log_history->lock), flags);
 		return;

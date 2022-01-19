@@ -302,7 +302,7 @@ static void conndump_timeout_handler(unsigned long data)
 {
 	struct connsys_dump_ctx* ctx = (struct connsys_dump_ctx*)data;
 
-	pr_info("[%s] coredump timeout\n", ctx->conn_type);
+	pr_debug("[%s] coredump timeout\n", ctx->conn_type);
 	conndump_set_dump_state(ctx, CORE_DUMP_TIMEOUT);
 }
 
@@ -326,7 +326,7 @@ static inline int conndump_get_dmp_info(struct connsys_dump_ctx* ctx, unsigned i
 
 	ret = EMI_READ32(ctx->emi_virt_addr_base + offset);
 	if (log)
-		pr_info("EMI[0x%x] = 0x%08x\n", offset, ret);
+		pr_debug("EMI[0x%x] = 0x%08x\n", offset, ret);
 
 	return ret;
 }
@@ -346,7 +346,7 @@ static void conndump_dump_log(char* buf, int size)
 
 		if (i >= DUMP_LOG_BYTES_PER_LINE || !size) {
 			line[i] = 0;
-			pr_info("page_trace: %s\n", line);
+			pr_debug("page_trace: %s\n", line);
 			i = 0;
 		}
 	}
@@ -498,9 +498,9 @@ do { \
 	FORMAT_STRING(buf, len, max_len, sec_len, "</main>\n");
 
 format_finish:
-	pr_info("== Issue info ==\n", buf);
-	pr_info("%s\n", buf);
-	pr_info("===== END =====\n");
+	pr_debug("== Issue info ==\n", buf);
+	pr_debug("%s\n", buf);
+	pr_debug("===== END =====\n");
 	ret = conndump_netlink_send_to_native(ctx->conn_type, "INFO", buf, len);
 	if (ret < 0)
 		pr_err("Send issue info to native fail, ret=%d\n", ret);
@@ -575,22 +575,22 @@ static void conndump_info_analysis(
 					pr_err("parser ' ' is not find\n");
 					pTemp2 = pTemp + 1;
 				}
-				pr_info("(pTemp2 - pTemp)=%d\n", (pTemp2 - pTemp));
+				pr_debug("(pTemp2 - pTemp)=%d\n", (pTemp2 - pTemp));
 				if ((remain_array_len) > (pTemp2 - pTemp)) {
-					pr_info("Copy %d\n", pTemp2 - pTemp);
+					pr_debug("Copy %d\n", pTemp2 - pTemp);
 					memcpy(
 						&ctx->info.assert_info[idx],
 						pTemp,
 						pTemp2 - pTemp);
 				} else {
-					pr_info("copy %d\n", (remain_array_len - 1));
+					pr_debug("copy %d\n", (remain_array_len - 1));
 					memcpy(
 						&ctx->info.assert_info[idx],
 						pTemp,
 						remain_array_len);
 				}
 			}
-			pr_info("assert info:%s\n", ctx->info.assert_info);
+			pr_debug("assert info:%s\n", ctx->info.assert_info);
 		}
 	} else {
 		/* FW exception */
@@ -628,7 +628,7 @@ static void conndump_info_analysis(
 					ret, tempBuf);
 			} else {
 				ctx->info.exp_ipc = res;
-				pr_info("exp_ipc=0x%x\n", ctx->info.exp_ipc);
+				pr_debug("exp_ipc=0x%x\n", ctx->info.exp_ipc);
 			}
 			if (remain_array_len > 0) {
 				sec_len = snprintf(&ctx->info.assert_info[idx], remain_array_len,
@@ -658,7 +658,7 @@ static void conndump_info_analysis(
 					ret, tempBuf);
 			} else {
 				ctx->info.exp_eva = res;
-				pr_info("eva addr=0x%x\n", ctx->info.exp_eva);
+				pr_debug("eva addr=0x%x\n", ctx->info.exp_eva);
 			}
 			if (remain_array_len > 0) {
 				sec_len = snprintf(
@@ -683,7 +683,7 @@ static void conndump_info_analysis(
 			len = (len >= CONNSYS_ASSERT_TYPE_SIZE) ? CONNSYS_ASSERT_TYPE_SIZE - 1 : len;
 			memcpy(ctx->info.etype, pDtr, len);
 			ctx->info.etype[len] = '\0';
-			pr_info("etype=%s\n", ctx->info.etype);
+			pr_debug("etype=%s\n", ctx->info.etype);
 			if (remain_array_len > 0) {
 				sec_len = snprintf(
 					&ctx->info.assert_info[idx], remain_array_len,
@@ -720,7 +720,7 @@ check_task_id:
 					ret, tempBuf);
 			} else {
 				ctx->info.fw_task_id = res;
-				pr_info("fw task id: %x\n", ctx->info.fw_task_id);
+				pr_debug("fw task id: %x\n", ctx->info.fw_task_id);
 			}
 		}
 	}
@@ -748,7 +748,7 @@ check_task_id:
 				pr_err("Get fw isr id fail, ret=%d, buf=%s\n", ret, tempBuf);
 			} else {
 				ctx->info.fw_isr = res;
-				pr_info("fw isr str:%x\n", ctx->info.fw_isr);
+				pr_debug("fw isr str:%x\n", ctx->info.fw_isr);
 			}
 		}
 	}
@@ -774,7 +774,7 @@ check_task_id:
 				pr_err("get fw irq id fail ret=%d, buf=%s\n", ret, tempBuf);
 			} else {
 				ctx->info.fw_irq = res;
-				pr_info("fw irq value:%x\n", ctx->info.fw_irq);
+				pr_debug("fw irq value:%x\n", ctx->info.fw_irq);
 			}
 		}
 	}
@@ -830,7 +830,7 @@ check_task_id:
 				}
 			}
 		}
-		pr_info("fw asert type:%s\n", ctx->info.assert_type);
+		pr_debug("fw asert type:%s\n", ctx->info.assert_type);
 	}
 
 	/* Store first several characters */
@@ -864,19 +864,19 @@ static int conndump_dump_print_buff(struct connsys_dump_ctx* ctx)
 		buff_len = CONNSYS_DUMP_PRINT_BUFF_SIZE;
 	}
 
-	pr_info("-- paged trace ascii output start --\n");
+	pr_debug("-- paged trace ascii output start --\n");
 	while (buff_len > 0) {
 		memset(ctx->page_dump_buf, '\0', CONNSYS_DUMP_BUFF_SIZE);
 		section_len = (buff_len > (CONNSYS_DUMP_BUFF_SIZE - 1)) ? (CONNSYS_DUMP_BUFF_SIZE - 1) : buff_len;
 		memcpy_fromio(ctx->page_dump_buf, ctx->emi_virt_addr_base + buff_start, section_len);
 
-		pr_info("-- paged trace ascii output --\n");
+		pr_debug("-- paged trace ascii output --\n");
 		conndump_dump_log(ctx->page_dump_buf, section_len);
 
 		buff_len -= section_len;
 		buff_start += section_len;
 	}
-	pr_info("-- paged trace ascii output end --\n");
+	pr_debug("-- paged trace ascii output end --\n");
 	return ret;
 }
 
@@ -947,7 +947,7 @@ static unsigned int conndump_setup_dynamic_remap(struct connsys_dump_ctx* ctx, u
 	void __iomem* vir_addr = 0;
 
 	if (is_host_view_cr(base, NULL)) {
-		pr_info("Host view CR: 0x%x, skip dynamic remap\n", base);
+		pr_debug("Host view CR: 0x%x, skip dynamic remap\n", base);
 		return length;
 	}
 
@@ -986,7 +986,7 @@ static void __iomem* conndump_remap(struct connsys_dump_ctx* ctx, unsigned int b
 	unsigned int host_cr;
 
 	if (is_host_view_cr(base, &host_cr)) {
-		pr_info("Map 0x%x to 0x%x\n", base, host_cr);
+		pr_debug("Map 0x%x to 0x%x\n", base, host_cr);
 		vir_addr = ioremap_nocache(host_cr, length);
 	} else {
 		vir_addr = ioremap_nocache(ctx->hw_config.seg1_phy_addr, length);
@@ -1045,7 +1045,7 @@ static int conndump_dump_cr_regions(struct connsys_dump_ctx* ctx)
 		    (ctx->dump_regions[idx].base > 0) &&
 		    (ctx->dump_regions[idx].base & 0x3) == 0 &&
 		    (ctx->dump_regions[idx].length & 0x3) == 0) {
-			pr_info("[%s][Region %d] base=0x%x size=0x%x\n", __func__, idx, ctx->dump_regions[idx].base, ctx->dump_regions[idx].length);
+			pr_debug("[%s][Region %d] base=0x%x size=0x%x\n", __func__, idx, ctx->dump_regions[idx].base, ctx->dump_regions[idx].length);
 			map_length = conndump_setup_dynamic_remap(
 					ctx, ctx->dump_regions[idx].base, ctx->dump_regions[idx].length);
 			/* For CR region, we assume region size should < dynamic remap region. */
@@ -1065,7 +1065,7 @@ static int conndump_dump_cr_regions(struct connsys_dump_ctx* ctx)
 					memcpy(&per_cr[6], &value, 4);
 					per_cr[10] = ']';
 					if (buff_size < CR_PER_LINE) {
-						pr_info("[%s] Dump buffer full (%d-th cr), flush to native space.\n", __func__, i);
+						pr_debug("[%s] Dump buffer full (%d-th cr), flush to native space.\n", __func__, i);
 						/* pack it! */
 						conndump_netlink_send_to_native(ctx->conn_type, "[M]", ctx->page_dump_buf, buff_idx);
 
@@ -1085,7 +1085,7 @@ static int conndump_dump_cr_regions(struct connsys_dump_ctx* ctx)
 
 	/* pack remaining item */
 	if (buff_idx) {
-		pr_info("[%s] send remain %d bytes\n", __func__, buff_idx);
+		pr_debug("[%s] send remain %d bytes\n", __func__, buff_idx);
 		conndump_netlink_send_to_native(ctx->conn_type, "[M]", ctx->page_dump_buf, buff_idx);
 	}
 
@@ -1112,7 +1112,7 @@ static int conndump_dump_mem_regions(struct connsys_dump_ctx* ctx)
 	void __iomem *map_base;
 	unsigned int* dump_buff = NULL;
 
-	pr_info("[%s] dump_regions_num=%d\n", __func__, ctx->dump_regions_num);
+	pr_debug("[%s] dump_regions_num=%d\n", __func__, ctx->dump_regions_num);
 	/* Check reg readable */
 	if (!conndump_check_cr_readable(ctx)) {
 		pr_err("CR not readable, skip memory region dump\n");
@@ -1124,7 +1124,7 @@ static int conndump_dump_mem_regions(struct connsys_dump_ctx* ctx)
 		    (ctx->dump_regions[idx].length > 0) &&
 		    (ctx->dump_regions[idx].length & 0x3) == 0 &&
 		    (ctx->dump_regions[idx].base & 0x3) == 0) {
-			pr_info("[%s][Region %d][%s] base=0x%x size=0x%x\n",
+			pr_debug("[%s][Region %d][%s] base=0x%x size=0x%x\n",
 				__func__, idx, ctx->dump_regions[idx].name,
 				ctx->dump_regions[idx].base, ctx->dump_regions[idx].length);
 			/* variable init */
@@ -1191,7 +1191,7 @@ static int conndump_dump_emi(struct connsys_dump_ctx* ctx)
 	char emi_dump_command[EMI_COMMAND_LENGTH];
 
 	snprintf(emi_dump_command, EMI_COMMAND_LENGTH, "emi_size=%d,mcif_emi_size=%d", ctx->full_emi_size, ctx->mcif_emi_size);
-	pr_info("[%s] dump command: %s\n", __func__, emi_dump_command);
+	pr_debug("[%s] dump command: %s\n", __func__, emi_dump_command);
 	conndump_set_dump_state(ctx, CORE_DUMP_EMI);
 	ret = conndump_netlink_send_to_native(ctx->conn_type, "[EMI]", emi_dump_command, strlen(emi_dump_command));
 
@@ -1208,7 +1208,7 @@ static int conndump_dump_emi(struct connsys_dump_ctx* ctx)
 		pr_err("EMI dump timeout\n");
 		conndump_set_dump_state(ctx, CORE_DUMP_EMI_TIMEOUT);
 	} else {
-		pr_info("EMI dump end");
+		pr_debug("EMI dump end");
 		conndump_set_dump_state(ctx, CORE_DUMP_DONE);
 	}
 
@@ -1242,14 +1242,14 @@ static void conndump_coredump_end(void* handler)
 	struct connsys_dump_ctx* ctx = (struct connsys_dump_ctx*)handler;
 
 	if (conndump_get_dump_state(ctx) == CORE_DUMP_EMI) {
-		pr_info("Wake up emi_dump\n");
+		pr_debug("Wake up emi_dump\n");
 		complete(&ctx->emi_dump);
 	}
 }
 
 static int conndump_send_fake_coredump(struct connsys_dump_ctx* ctx)
 {
-	pr_info("Send fake coredump\n");
+	pr_debug("Send fake coredump\n");
 	return conndump_netlink_send_to_native(ctx->conn_type, "[M]", "FORCE_COREDUMP", 13);
 }
 
@@ -1269,7 +1269,7 @@ static void conndump_exception_show(struct connsys_dump_ctx* ctx, bool full_dump
 	}
 
 #if defined(CONNINFRA_PLAT_ALPS) && CONNINFRA_PLAT_ALPS
-	pr_info("par1: [%s] pars: [%s] par3: [%d]\n",
+	pr_debug("par1: [%s] pars: [%s] par3: [%d]\n",
 		ctx->hw_config.exception_tag_name,
 		ctx->info.exception_log,
 		strlen(ctx->info.exception_log));
@@ -1299,7 +1299,7 @@ void connsys_coredump_clean(void* handler)
 	if (ctx == NULL)
 		return;
 
-	pr_info("[%s] Clear %p size=%d as zero\n", __func__, ctx->emi_virt_addr_base, ctx->emi_size);
+	pr_debug("[%s] Clear %p size=%d as zero\n", __func__, ctx->emi_virt_addr_base, ctx->emi_size);
 	memset_io(ctx->emi_virt_addr_base, 0, ctx->emi_size);
 
 	conndump_set_dump_state(ctx, CORE_DUMP_INIT);
@@ -1346,14 +1346,14 @@ int connsys_coredump_setup_dump_region(void* handler)
 	}
 	cr_regions_idx = (cr_regions_idx >> 3);
 	total_count = total_mem_region + cr_regions_idx;
-	pr_info("CR region=%d. Memory region=%d total dump regions is %d.\n",
+	pr_debug("CR region=%d. Memory region=%d total dump regions is %d.\n",
 		cr_regions_idx, total_mem_region, total_count);
 
 	if (ctx->dump_regions) {
 		connsys_coredump_deinit_dump_regions(ctx);
 	}
 	if (total_count == 0) {
-		pr_info("Total dump regions is %d.\n", total_count);
+		pr_debug("Total dump regions is %d.\n", total_count);
 		return 0;
 	}
 
@@ -1369,7 +1369,7 @@ int connsys_coredump_setup_dump_region(void* handler)
 		conndump_get_dmp_char(ctx, offset, 4, curr_region->name);
 		curr_region->base = conndump_get_dmp_info(ctx, offset + 4, false);
 		curr_region->length = conndump_get_dmp_info(ctx, offset + 8, false);
-		pr_info("[%d][Memory region] name: %s, base: %x, length: %x\n",
+		pr_debug("[%d][Memory region] name: %s, base: %x, length: %x\n",
 			idx,
 			curr_region->name,
 			curr_region->base,
@@ -1390,7 +1390,7 @@ int connsys_coredump_setup_dump_region(void* handler)
 		}
 
 		if (cr_count % MAX_IN_LINE == 0) {
-			pr_info("%s", buf);
+			pr_debug("%s", buf);
 			memset(buf, '\0', sizeof(buf));
 			wsize = snprintf(buf, BUF_SIZE, "[CR region](base,length): ");
 			accum_size = 0;
@@ -1400,7 +1400,7 @@ int connsys_coredump_setup_dump_region(void* handler)
 	}
 
 	if ((cr_count - 1) % MAX_IN_LINE != 0) {
-		pr_info("%s", buf);
+		pr_debug("%s", buf);
 	}
 
 	return ctx->dump_regions_num;
@@ -1436,11 +1436,11 @@ int connsys_coredump_start(
 
 	/* TODO: Check coredump mode */
 	if (connsys_coredump_get_mode() == DUMP_MODE_RESET_ONLY) {
-		pr_info("Chip reset only, skip coredump\n");
+		pr_debug("Chip reset only, skip coredump\n");
 		return 0;
 	}
 
-	pr_info("[COREDUMP] dump_property=[0x%x] drv=[%d] reason=[%s]\n", dump_property, drv, reason);
+	pr_debug("[COREDUMP] dump_property=[0x%x] drv=[%d] reason=[%s]\n", dump_property, drv, reason);
 	do_gettimeofday(&begin);
 	conndump_set_dump_state(ctx, CORE_DUMP_START);
 	/* Reset assert info */
@@ -1457,28 +1457,28 @@ int connsys_coredump_start(
 	/* Check coredump status */
 	while (1) {
 		if (conndump_get_dmp_info(ctx, CONNSYS_DUMP_CTRL_BLOCK_OFFSET + EXP_CTRL_DUMP_STATE, false) == FW_DUMP_STATE_PUT_DONE) {
-			pr_info("coredump put done\n");
+			pr_debug("coredump put done\n");
 			del_timer(&ctx->dmp_timer);
 			full_dump = true;
 			break;
 		} else if (conndump_get_dump_state(ctx) == CORE_DUMP_TIMEOUT) {
 			pr_err("Coredump timeout\n");
 			if (ctx->callback.poll_cpupcr) {
-				pr_info("Debug dump:\n");
+				pr_debug("Debug dump:\n");
 				ctx->callback.poll_cpupcr(5, 1);
 			}
 			conndump_send_fake_coredump(ctx);
 			goto partial_dump;
 		}
 		if (__ratelimit(&_rs)) {
-			pr_info("Wait coredump state, EMI[0]=0x%x EMI[4]=0x%x\n",
+			pr_debug("Wait coredump state, EMI[0]=0x%x EMI[4]=0x%x\n",
 				conndump_get_dmp_info(ctx, 0, false),
 				conndump_get_dmp_info(ctx, 4, false));
 		}
 		if (dump_property & CONNSYS_DUMP_PROPERTY_NO_WAIT) {
-			pr_info("Don't wait dump status, go to partial dump\n");
+			pr_debug("Don't wait dump status, go to partial dump\n");
 			if (ctx->callback.poll_cpupcr) {
-				pr_info("Debug dump:\n");
+				pr_debug("Debug dump:\n");
 				ctx->callback.poll_cpupcr(5, 1);
 			}
 			conndump_send_fake_coredump(ctx);
@@ -1527,9 +1527,9 @@ partial_dump:
 
 	conndump_exception_show(ctx, full_dump);
 	do_gettimeofday(&end);
-	pr_info("Coredump end\n");
+	pr_debug("Coredump end\n");
 	if (full_dump) {
-		pr_info("%s coredump summary: full dump total=[%lu] put_done=[%lu] cr=[%lu] mem=[%lu] emi=[%lu]\n",
+		pr_debug("%s coredump summary: full dump total=[%lu] put_done=[%lu] cr=[%lu] mem=[%lu] emi=[%lu]\n",
 			g_type_name[ctx->conn_type],
 			timeval_to_ms(&begin, &end),
 			timeval_to_ms(&begin, &put_done),
@@ -1537,7 +1537,7 @@ partial_dump:
 			timeval_to_ms(&mem_start, &mem_end),
 			timeval_to_ms(&emi_dump_start, &emi_dump_end));
 	} else {
-		pr_info("%s coredump summary: partial dump total=[%lu] cr=[%lu] mem=[%lu] emi=[%lu]\n",
+		pr_debug("%s coredump summary: partial dump total=[%lu] cr=[%lu] mem=[%lu] emi=[%lu]\n",
 			g_type_name[ctx->conn_type],
 			timeval_to_ms(&begin, &end),
 			timeval_to_ms(&cr_start, &cr_end),
@@ -1614,12 +1614,12 @@ void* connsys_coredump_init(
 	if (cb)
 		memcpy(&ctx->callback, cb, sizeof(struct coredump_event_cb));
 	else
-		pr_info("[%s][%d] callback is null\n", __func__, conn_type);
+		pr_debug("[%s][%d] callback is null\n", __func__, conn_type);
 
 	/* EMI init */
 	conninfra_get_emi_phy_addr(CONNSYS_EMI_FW, &emi_base, &emi_size);
 	conninfra_get_emi_phy_addr(CONNSYS_EMI_MCIF, NULL, &mcif_emi_size);
-	pr_info("Get emi_base=0x%x emi_size=%d\n", emi_base, emi_size);
+	pr_debug("Get emi_base=0x%x emi_size=%d\n", emi_base, emi_size);
 	ctx->full_emi_size = emi_size;
 	ctx->emi_phy_addr_base = config->start_offset + emi_base;
 	ctx->emi_size = config->size;
@@ -1633,7 +1633,7 @@ void* connsys_coredump_init(
 		goto error_exit;
 	}
 
-	pr_info("Clear %p size=%d as zero\n", ctx->emi_virt_addr_base, ctx->emi_size);
+	pr_debug("Clear %p size=%d as zero\n", ctx->emi_virt_addr_base, ctx->emi_size);
 	memset_io(ctx->emi_virt_addr_base, 0, ctx->emi_size);
 
 	/* Setup timer */

@@ -255,25 +255,25 @@ INT32 gStpSdioDbgLvl = STPSDIO_LOG_INFO;
 #define STPSDIO_PR_LOUD(fmt, arg...) \
 do { \
 	if (gStpSdioDbgLvl >= STPSDIO_LOG_LOUD) \
-		pr_info(DFT_TAG "[L]%s:"  fmt, __func__, ##arg); \
+		pr_debug(DFT_TAG "[L]%s:"  fmt, __func__, ##arg); \
 } while (0)
 
 #define STPSDIO_PR_DBG(fmt, arg...) \
 do { \
 	if (gStpSdioDbgLvl >= STPSDIO_LOG_DBG) \
-		pr_info(DFT_TAG "[D]%s:"  fmt, __func__, ##arg); \
+		pr_debug(DFT_TAG "[D]%s:"  fmt, __func__, ##arg); \
 } while (0)
 
 #define STPSDIO_PR_HINT(fmt, arg...) \
 do { \
 	if (gStpSdioDbgLvl >= STPSDIO_LOG_HINT) \
-		pr_info(DFT_TAG "[I]%s:"	fmt, __func__, ##arg); \
+		pr_debug(DFT_TAG "[I]%s:"	fmt, __func__, ##arg); \
 } while (0)
 
 #define STPSDIO_PR_INFO(fmt, arg...) \
 do { \
 	if (gStpSdioDbgLvl >= STPSDIO_LOG_INFO) \
-		pr_info(DFT_TAG "[I]%s:"  fmt, __func__, ##arg); \
+		pr_debug(DFT_TAG "[I]%s:"  fmt, __func__, ##arg); \
 } while (0)
 
 #define STPSDIO_PR_WARN(fmt, arg...)	\

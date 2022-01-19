@@ -215,24 +215,24 @@ static int btmtk_uart_tty_ioctl(struct tty_struct *tty, struct file *file,
 
 	switch (cmd) {
 	case HCIUARTSETPROTO:
-		pr_info("<!!> Set low_latency to TRUE <!!>\n");
+		pr_debug("<!!> Set low_latency to TRUE <!!>\n");
 		tty->port->low_latency = 1;
 		break;
 	case HCIUARTSETBAUD:
-		pr_info("<!!> Set BAUDRATE <!!>\n");
+		pr_debug("<!!> Set BAUDRATE <!!>\n");
 		btmtk_uart_send_set_uart_cmd(g_bdev->hdev);
 		btmtk_uart_send_wakeup_cmd(g_bdev->hdev);
 		msleep(100);
 		return 1;
 	case HCIUARTGETBAUD:
-		pr_info("<!!> Get BAUDRATE <!!>\n");
+		pr_debug("<!!> Get BAUDRATE <!!>\n");
 		btmtk_uart_send_query_uart_cmd(g_bdev->hdev);
 		return 1;
 	case HCIUARTSETSTP:
-		pr_info("<!!> Set STP mandatory command <!!>\n");
+		pr_debug("<!!> Set STP mandatory command <!!>\n");
 		return 1;
 	case HCIUARTLOADPATCH:
-		pr_info("<!!> Set HCIUARTLOADPATCH command <!!>\n");
+		pr_debug("<!!> Set HCIUARTLOADPATCH command <!!>\n");
 		btmtk_load_rom_patch_766x(g_bdev->hdev);
 		return 1;
 	default:

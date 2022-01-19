@@ -55,17 +55,17 @@ extern int gWmtDetectDbgLvl;
 #define WMT_DETECT_PR_LOUD(fmt, arg...) \
 do { \
 	if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_LOUD) \
-		pr_info(DFT_TAG"[L]%s:"  fmt, __func__, ##arg); \
+		pr_debug(DFT_TAG"[L]%s:"  fmt, __func__, ##arg); \
 } while (0)
 #define WMT_DETECT_PR_DBG(fmt, arg...) \
 do { \
 	if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_DBG) \
-		pr_info(DFT_TAG"[D]%s:"  fmt, __func__, ##arg); \
+		pr_debug(DFT_TAG"[D]%s:"  fmt, __func__, ##arg); \
 } while (0)
 #define WMT_DETECT_PR_INFO(fmt, arg...) \
 do { \
 	if (gWmtDetectDbgLvl >= WMT_DETECT_LOG_INFO) \
-		pr_info(DFT_TAG"[I]%s:"  fmt, __func__, ##arg); \
+		pr_debug(DFT_TAG"[I]%s:"  fmt, __func__, ##arg); \
 } while (0)
 #define WMT_DETECT_PR_WARN(fmt, arg...) \
 do { \

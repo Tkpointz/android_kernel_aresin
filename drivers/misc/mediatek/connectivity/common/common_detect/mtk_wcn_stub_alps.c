@@ -42,7 +42,7 @@ int gCmbStubLogLevel = CMB_STUB_INFO_LOG;
 #define CMB_STUB_LOG_PR_INFO(fmt, arg...) \
 do { \
 	if (gCmbStubLogLevel >= CMB_STUB_INFO_LOG) \
-		pr_info(fmt, ##arg); \
+		pr_debug(fmt, ##arg); \
 } while (0)
 #define CMB_STUB_LOG_PR_WARN(fmt, arg...) \
 do { \
@@ -52,7 +52,7 @@ do { \
 #define CMB_STUB_LOG_PR_DBG(fmt, arg...) \
 do { \
 	if (gCmbStubLogLevel >= CMB_STUB_DBG_LOG) \
-		pr_info(fmt, ##arg); \
+		pr_debug(fmt, ##arg); \
 } while (0)
 
 /*******************************************************************************

@@ -78,7 +78,7 @@
 DEFINE_RATELIMIT_STATE(g_rs, HZ, 1);
 
 #define DUMP_LOG() if (__ratelimit(&g_rs)) \
-			pr_info("rst is ongoing")
+			pr_debug("rst is ongoing")
 
 #else
 #define DUMP_LOG()
@@ -138,7 +138,7 @@ EXPORT_SYMBOL(conninfra_get_emi_phy_addr);
 
 int conninfra_pwr_on(enum consys_drv_type drv_type)
 {
-	pr_info("[%s] drv=[%d]", __func__, drv_type);
+	pr_debug("[%s] drv=[%d]", __func__, drv_type);
 	if (conninfra_core_is_rst_locking()) {
 		DUMP_LOG();
 		return CONNINFRA_ERR_RST_ONGOING;
@@ -203,7 +203,7 @@ int conninfra_trigger_whole_chip_rst(enum consys_drv_type who, char *reason)
 		pr_warn("[%s] r=[%d] chip rst is ongoing\n", __func__, r);
 		return 1;
 	}
-	pr_info("[%s] rst lock [%d] [%d] reason=%s", __func__, r, who, reason);
+	pr_debug("[%s] rst lock [%d] [%d] reason=%s", __func__, r, who, reason);
 
 	conninfra_core_trg_chip_rst(who, reason);
 
@@ -219,7 +219,7 @@ int conninfra_sub_drv_ops_register(enum consys_drv_type type,
 		pr_err("[%s] incorrect drv type [%d]", __func__, type);
 		return -EINVAL;
 	}
-	pr_info("[%s] ----", __func__);
+	pr_debug("[%s] ----", __func__);
 	conninfra_core_subsys_ops_reg(type, cb);
 	return 0;
 }
@@ -232,7 +232,7 @@ int conninfra_sub_drv_ops_unregister(enum consys_drv_type type)
 		pr_err("[%s] incorrect drv type [%d]", __func__, type);
 		return -EINVAL;
 	}
-	pr_info("[%s] ----", __func__);
+	pr_debug("[%s] ----", __func__);
 	conninfra_core_subsys_ops_unreg(type);
 	return 0;
 }

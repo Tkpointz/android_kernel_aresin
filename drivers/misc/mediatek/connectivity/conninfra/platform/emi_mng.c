@@ -118,7 +118,7 @@ int emi_mng_init(void)
 	if (consys_platform_emi_ops == NULL)
 		consys_platform_emi_ops = get_consys_platform_emi_ops();
 
-	pr_info("[emi_mng_init] gConEmiPhyBase = [0x%llx] size = [%llx] ops=[%p]",
+	pr_debug("[emi_mng_init] gConEmiPhyBase = [0x%llx] size = [%llx] ops=[%p]",
 			gConEmiPhyBase, gConEmiSize, consys_platform_emi_ops);
 
 	if (gConEmiPhyBase) {
