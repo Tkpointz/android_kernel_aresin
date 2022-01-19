@@ -45,27 +45,27 @@ static unsigned int gConnAdpDbgLvl = CONNADP_LOG_INFO;
 #define CONNADP_LOUD_FUNC(fmt, arg...) \
 do { \
 	if (gConnAdpDbgLvl >= CONNADP_LOG_LOUD) \
-		pr_info("[L]%s:"  fmt, __func__, ##arg); \
+		pr_debug("[L]%s:"  fmt, __func__, ##arg); \
 } while (0)
 #define CONNADP_DBG_FUNC(fmt, arg...) \
 do { \
 	if (gConnAdpDbgLvl >= CONNADP_LOG_DBG) \
-		pr_info("[D]%s:"  fmt, __func__, ##arg); \
+		pr_debug("[D]%s:"  fmt, __func__, ##arg); \
 } while (0)
 #define CONNADP_INFO_FUNC(fmt, arg...)  \
 do { \
 	if (gConnAdpDbgLvl >= CONNADP_LOG_INFO) \
-		pr_info("[I]%s:"  fmt, __func__, ##arg); \
+		pr_debug("[I]%s:"  fmt, __func__, ##arg); \
 } while (0)
 #define CONNADP_WARN_FUNC(fmt, arg...) \
 do { \
 	if (gConnAdpDbgLvl >= CONNADP_LOG_WARN) \
-		pr_info("[W]%s:"  fmt, __func__, ##arg); \
+		pr_warn("[W]%s:"  fmt, __func__, ##arg); \
 } while (0)
 #define CONNADP_ERR_FUNC(fmt, arg...) \
 do { \
 	if (gConnAdpDbgLvl >= CONNADP_LOG_ERR) \
-		pr_info("[E]%s(%d):"  fmt, __func__, __LINE__, ##arg); \
+		pr_debug("[E]%s(%d):"  fmt, __func__, __LINE__, ##arg); \
 } while (0)
 
 

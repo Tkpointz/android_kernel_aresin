@@ -124,18 +124,18 @@ int core_tc_pwr_on(void)
 {
 	int iret = 0;
 
-	pr_info("Power on test start");
+	pr_debug("Power on test start");
 	iret = conninfra_core_power_on(CONNDRV_TYPE_BT);
-	pr_info("BT power on %s (result = %d)", iret? "fail" : "pass", iret);
+	pr_debug("BT power on %s (result = %d)", iret? "fail" : "pass", iret);
 	osal_sleep_ms(100);
 	iret = conninfra_core_power_on(CONNDRV_TYPE_FM);
-	pr_info("FM power on %s (result = %d)", iret? "fail" : "pass", iret);
+	pr_debug("FM power on %s (result = %d)", iret? "fail" : "pass", iret);
 	osal_sleep_ms(100);
 	iret = conninfra_core_power_on(CONNDRV_TYPE_GPS);
-	pr_info("GPS power on %s (result = %d)", iret? "fail" : "pass", iret);
+	pr_debug("GPS power on %s (result = %d)", iret? "fail" : "pass", iret);
 	osal_sleep_ms(100);
 	iret = conninfra_core_power_on(CONNDRV_TYPE_WIFI);
-	pr_info("Wi-Fi power on %s (result = %d)", iret? "fail" : "pass", iret);
+	pr_debug("Wi-Fi power on %s (result = %d)", iret? "fail" : "pass", iret);
 	osal_sleep_ms(200);
 
 	return iret;
@@ -146,16 +146,16 @@ int core_tc_pwr_off(void)
 	int iret = 0;
 
 	iret = conninfra_core_power_off(CONNDRV_TYPE_WIFI);
-	pr_info("Wi-Fi power off %s (result = %d)", iret? "fail" : "pass", iret);
+	pr_debug("Wi-Fi power off %s (result = %d)", iret? "fail" : "pass", iret);
 	osal_sleep_ms(100);
 	iret = conninfra_core_power_off(CONNDRV_TYPE_GPS);
-	pr_info("GPS power off %s (result = %d)", iret? "fail" : "pass", iret);
+	pr_debug("GPS power off %s (result = %d)", iret? "fail" : "pass", iret);
 	osal_sleep_ms(100);
 	iret = conninfra_core_power_off(CONNDRV_TYPE_BT);
-	pr_info("BT power off %s (result = %d)", iret? "fail" : "pass", iret);
+	pr_debug("BT power off %s (result = %d)", iret? "fail" : "pass", iret);
 	osal_sleep_ms(100);
 	iret = conninfra_core_power_off(CONNDRV_TYPE_FM);
-	pr_info("FM power off %s (result = %d)", iret? "fail" : "pass", iret);
+	pr_debug("FM power off %s (result = %d)", iret? "fail" : "pass", iret);
 
 	return iret;
 }
@@ -178,31 +178,31 @@ int core_tc(int par1, int par2, int par3)
 		if (par3 == 15) {
 			iret = core_tc_pwr_on();
 		} else if (par3 >= CONNDRV_TYPE_BT && par3 <= CONNDRV_TYPE_WIFI) {
-			pr_info("Power on %s test start\n", driver_name[par3]);
+			pr_debug("Power on %s test start\n", driver_name[par3]);
 			iret = conninfra_core_power_on(par3);
-			pr_info("Power on %s test, return = %d\n", driver_name[par3], iret);
+			pr_debug("Power on %s test, return = %d\n", driver_name[par3], iret);
 		} else {
-			pr_info("No support parameter\n");
+			pr_debug("No support parameter\n");
 		}
 	} else if (par2 == 2) {
 		if (par3 == 15) {
 			iret = core_tc_pwr_off();
 		} else if (par3 >= CONNDRV_TYPE_BT && par3 <= CONNDRV_TYPE_WIFI) {
-			pr_info("Power off %s test start\n", driver_name[par3]);
+			pr_debug("Power off %s test start\n", driver_name[par3]);
 			iret = conninfra_core_power_off(par3);
-			pr_info("Power off %s test, return = %d\n", driver_name[par3], iret);
+			pr_debug("Power off %s test, return = %d\n", driver_name[par3], iret);
 		} else {
-			pr_info("No support parameter\n");
+			pr_debug("No support parameter\n");
 		}
 	} else if (par2 == 3) {
 		if (par3 == 1) {
 			iret = conninfra_core_adie_top_ck_en_on(CONNSYS_ADIE_CTL_FW_WIFI);
-			pr_info(
+			pr_debug(
 				"Turn on adie top ck en (ret=%d), please check 0x1805_2830[6] should be 1\n",
 				iret);
 		} else if (par3 == 0) {
 			iret = conninfra_core_adie_top_ck_en_off(CONNSYS_ADIE_CTL_FW_WIFI);
-			pr_info(
+			pr_debug(
 				"Turn off adie top ck en (ret=%d), please check 0x1805_2830[6] should be 1\n",
 				iret);
 		}
@@ -223,13 +223,13 @@ static int msg_evt_tc(int par1, int par2, int par3)
 
 static int chip_rst_tc(int par1, int par2, int par3)
 {
-	pr_info("test start");
+	pr_debug("test start");
 	return chip_rst_test();
 }
 
 static int cal_tc(int par1, int par2, int par3)
 {
-	pr_info("test start");
+	pr_debug("test start");
 	return calibration_test();
 }
 
@@ -245,15 +245,15 @@ static int emi_tc(int par1, int par2, int par3)
 	unsigned int size = 0;
 	int ret = 0;
 
-	pr_info("[%s] start", __func__);
+	pr_debug("[%s] start", __func__);
 	conninfra_get_phy_addr(&addr, &size);
 	if (addr == 0 || size == 0) {
 		pr_err("[%s] fail! addr=[0x%x] size=[%u]", __func__, addr, size);
 		ret = -1;
 	} else
-		pr_info("[%s] pass. addr=[0x%x] size=[%u]", __func__, addr, size);
+		pr_debug("[%s] pass. addr=[0x%x] size=[%u]", __func__, addr, size);
 
-	pr_info("[%s] end", __func__);
+	pr_debug("[%s] end", __func__);
 
 	return ret;
 }
@@ -268,7 +268,7 @@ static int thermal_tc(int par1, int par2, int par3)
 		return -1;
 	}
 	ret = conninfra_core_thermal_query(&temp);
-	pr_info("[%s] thermal res=[%d][%d]", __func__, ret, temp);
+	pr_debug("[%s] thermal res=[%d][%d]", __func__, ret, temp);
 
 	return ret;
 }
@@ -283,7 +283,7 @@ static int log_tc(int par1, int par2, int par3)
 
 	if (par2 == 0) {
 		if (log_status != 0) {
-			pr_info("log has been init.\n");
+			pr_debug("log has been init.\n");
 			return 0;
 		}
 		/* init */
@@ -292,7 +292,7 @@ static int log_tc(int par1, int par2, int par3)
 			pr_err("FW log init fail! ret=%d\n", ret);
 		else {
 			log_status = 1;
-			pr_info("FW log init finish. Check result on EMI.\n");
+			pr_debug("FW log init finish. Check result on EMI.\n");
 		}
 	} else if (par2 == 1) {
 		/* add fake log */
@@ -301,7 +301,7 @@ static int log_tc(int par1, int par2, int par3)
 	} else if (par2 == 2) {
 		/* deinit */
 		if (log_status == 0) {
-			pr_info("log didn't init\n");
+			pr_debug("log didn't init\n");
 			return 0;
 		}
 		ret = connlog_test_deinit();
@@ -319,7 +319,7 @@ static int bus_hang_tc(int par1, int par2, int par3)
 	int r;
 	r = conninfra_core_is_bus_hang();
 
-	pr_info("[%s] r=[%d]\n", __func__, r);
+	pr_debug("[%s] r=[%d]\n", __func__, r);
 	return 0;
 }
 
@@ -333,9 +333,9 @@ static int is_bus_hang_tc(int par1, int par2, int par3)
 	int r;
 
 	r = consys_reg_mng_reg_readable();
-	pr_info("[%s] r=[%d]", __func__, r);
+	pr_debug("[%s] r=[%d]", __func__, r);
 	r = consys_reg_mng_is_bus_hang();
-	pr_info("[%s] r=[%d]", __func__, r);
+	pr_debug("[%s] r=[%d]", __func__, r);
 	return 0;
 }
 
@@ -361,7 +361,7 @@ ssize_t conninfra_test_write(struct file *filp, const char __user *buffer, size_
 	long res = 0;
 	static bool test_enabled = false;
 
-	pr_info("write parameter len = %d\n\r", (int) len);
+	pr_debug("write parameter len = %d\n\r", (int) len);
 	if (len >= osal_sizeof(buf)) {
 		pr_err("input handling fail!\n");
 		len = osal_sizeof(buf) - 1;
@@ -372,7 +372,7 @@ ssize_t conninfra_test_write(struct file *filp, const char __user *buffer, size_
 		return -EFAULT;
 
 	buf[len] = '\0';
-	pr_info("write parameter data = %s\n\r", buf);
+	pr_debug("write parameter data = %s\n\r", buf);
 
 	pBuf = buf;
 	pToken = osal_strsep(&pBuf, pDelimiter);
@@ -387,7 +387,7 @@ ssize_t conninfra_test_write(struct file *filp, const char __user *buffer, size_
 	if (pToken != NULL) {
 		osal_strtol(pToken, 16, &res);
 		y = (int)res;
-		pr_info("y = 0x%08x\n\r", y);
+		pr_debug("y = 0x%08x\n\r", y);
 	} else {
 		y = 3000;
 		/*efuse, register read write default value */
@@ -406,7 +406,7 @@ ssize_t conninfra_test_write(struct file *filp, const char __user *buffer, size_
 			z = 0xffffffff;
 	}
 
-	pr_info("x(0x%08x), y(0x%08x), z(0x%08x)\n\r", x, y, z);
+	pr_debug("x(0x%08x), y(0x%08x), z(0x%08x)\n\r", x, y, z);
 
 	/* For eng and userdebug load, have to enable wmt_dbg by
 	 * writing 0xDB9DB9 to * "/proc/driver/wmt_dbg" to avoid

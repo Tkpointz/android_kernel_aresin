@@ -281,7 +281,7 @@ int msg_evt_put_op_to_active(struct msg_thread_ctx *ctx, struct msg_op *op)
 		if (wait_ret == 0)
 			pr_warn("opId(%d) completion timeout\n", op->op.op_id);
 		else if (op->result)
-			pr_info("opId(%d) result:%d\n",
+			pr_debug("opId(%d) result:%d\n",
 					op->op.op_id, op->result);
 
 		/* op completes, check result */
@@ -403,7 +403,7 @@ void msg_op_history_save(struct osal_op_history *log_history, struct msg_op *op)
 	}
 
 	if (entry == NULL) {
-		pr_info("Entry is null, size %d\n",
+		pr_debug("Entry is null, size %d\n",
 				RING_SIZE(&log_history->ring_buffer));
 		spin_unlock_irqrestore(&(log_history->lock), flags);
 		return;
@@ -489,7 +489,7 @@ static int msg_evt_thread(void *pvData)
 		osal_thread_wait_for_event(&ctx->thread, evt, msg_evt_wait_event_checker);
 
 		if (osal_thread_should_stop(&ctx->thread)) {
-			pr_info("msg_evt_thread thread should stop now...\n");
+			pr_debug("msg_evt_thread thread should stop now...\n");
 			/* TODO: clean up active opQ */
 			break;
 		}

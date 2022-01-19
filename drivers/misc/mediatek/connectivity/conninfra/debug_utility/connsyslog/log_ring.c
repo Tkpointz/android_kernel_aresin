@@ -13,15 +13,15 @@
 void log_ring_init(void *base, unsigned int max_size, unsigned int read,
 	unsigned int write, struct ring *ring)
 {
-	pr_info("base=0x%lx max_size=%x read=%x write=%x", base, max_size, read, write);
+	pr_debug("base=0x%lx max_size=%x read=%x write=%x", base, max_size, read, write);
 
 	WARN_ON(!base);
-	pr_info("xxxx-1");
+	pr_debug("xxxx-1");
 	LOG_RING_VALIDATE_SIZE(max_size);
-	pr_info("xxx-2");
+	pr_debug("xxx-2");
 	/* making sure write largger than read */
 	WARN_ON(read > write);
-	pr_info("xxx-3");
+	pr_debug("xxx-3");
 	ring->base = base;
 	ring->read = read;
 	ring->write = write;
@@ -30,13 +30,13 @@ void log_ring_init(void *base, unsigned int max_size, unsigned int read,
 
 void log_ring_dump(const char *title, struct ring *ring)
 {
-	pr_info("[%s] ring:{write=%d, read=%d, max_size=%d}\n",
+	pr_debug("[%s] ring:{write=%d, read=%d, max_size=%d}\n",
 			title, ring->write, ring->read, ring->max_size);
 }
 
 void log_ring_dump_segment(const char *title, struct ring_segment *seg)
 {
-	pr_info("[%s] seg:{ring_pt=0x%p, data_pos=%d, sz=%d, remain=%d}\n",
+	pr_debug("[%s] seg:{ring_pt=0x%p, data_pos=%d, sz=%d, remain=%d}\n",
 			title, seg->ring_pt, seg->data_pos, seg->sz, seg->remain);
 }
 

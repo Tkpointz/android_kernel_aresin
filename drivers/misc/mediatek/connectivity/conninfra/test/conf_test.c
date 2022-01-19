@@ -99,7 +99,7 @@ int conninfra_conf_test(void)
 		return -1;
 	}
 
-	pr_info("[%s] test PASS\n", __func__);
+	pr_debug("[%s] test PASS\n", __func__);
 	return 0;
 }
 

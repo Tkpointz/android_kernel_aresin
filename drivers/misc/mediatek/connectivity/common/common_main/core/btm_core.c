@@ -38,17 +38,17 @@ INT32 gBtmDbgLevel = STP_BTM_LOG_INFO;
 #define STP_BTM_PR_LOUD(fmt, arg...) \
 do { \
 	if (gBtmDbgLevel >= STP_BTM_LOG_LOUD) \
-		pr_info(PFX_BTM "%s: "  fmt, __func__, ##arg); \
+		pr_debug(PFX_BTM "%s: "  fmt, __func__, ##arg); \
 } while (0)
 #define STP_BTM_PR_DBG(fmt, arg...) \
 do { \
 	if (gBtmDbgLevel >= STP_BTM_LOG_DBG) \
-		pr_info(PFX_BTM "%s: "  fmt, __func__, ##arg); \
+		pr_debug(PFX_BTM "%s: "  fmt, __func__, ##arg); \
 } while (0)
 #define STP_BTM_PR_INFO(fmt, arg...) \
 do { \
 	if (gBtmDbgLevel >= STP_BTM_LOG_INFO) \
-		pr_info(PFX_BTM "[I]%s: "  fmt, __func__, ##arg); \
+		pr_debug(PFX_BTM "[I]%s: "  fmt, __func__, ##arg); \
 } while (0)
 #define STP_BTM_PR_WARN(fmt, arg...) \
 do { \

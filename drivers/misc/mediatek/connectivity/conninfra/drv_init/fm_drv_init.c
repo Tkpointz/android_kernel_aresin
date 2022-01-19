@@ -17,12 +17,12 @@ int __attribute__((weak)) mtk_wcn_fm_init()
 
 int do_fm_drv_init(int chip_id)
 {
-	pr_info("Start to do fm module init\n");
+	pr_debug("Start to do fm module init\n");
 
 #ifdef CONFIG_MTK_FMRADIO
 	mtk_wcn_fm_init();
 #endif
 
-	pr_info("Finish fm module init\n");
+	pr_debug("Finish fm module init\n");
 	return 0;
 }

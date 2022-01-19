@@ -112,7 +112,7 @@ static void consys_bus_hang_dump_c(void)
 	 * 0x1806_0184[5] conn_infra on2off slp prot
 	 * 0x1806_0184[3] conn_infra off2on slp prot
 	 */
-	pr_info("[CONN_BUS_C] [%x][%x][%x] [%x]",
+	pr_debug("[CONN_BUS_C] [%x][%x][%x] [%x]",
 		CONSYS_REG_READ(CON_REG_INFRACFG_BASE_ADDR + INFRA_CONN2AP_GLAS_RC_ST),
 		CONSYS_REG_READ(CON_REG_SPM_BASE_ADDR + SPM_BUS_PROTECT2_RDY),
 		CONSYS_REG_READ(CON_REG_SPM_BASE_ADDR + SPM_BUS_PROTECT_RDY),
@@ -125,7 +125,7 @@ static void consys_bus_hang_dump_c(void)
 	for (i = 0; i < ARRAY_SIZE(debug_setting); i++) {
 		CONSYS_REG_WRITE(debug_addr, debug_setting[i]);
 		value = CONSYS_REG_READ(out_addr);
-		pr_info("[CONN_BUS_C] addr=0x%x value=0x%08x", debug_setting[i], value);
+		pr_debug("[CONN_BUS_C] addr=0x%x value=0x%08x", debug_setting[i], value);
 	}
 }
 
@@ -140,7 +140,7 @@ static void consys_bus_hang_dump_a_rc(void)
 			CONSYS_REG_READ(CON_REG_SPM_BASE_ADDR + i)) >= 0)
 			strncat(tmp_buf, tmp, strlen(tmp));
 	}
-	pr_info("[rc_trace] %s", tmp_buf);
+	pr_debug("[rc_trace] %s", tmp_buf);
 
 	memset(tmp_buf, '\0', LOG_TMP_BUF_SZ);
 	for (i = 0xE98; i <= 0xED4; i += 4) {
@@ -148,7 +148,7 @@ static void consys_bus_hang_dump_a_rc(void)
 			CONSYS_REG_READ(CON_REG_SPM_BASE_ADDR + i)) >= 0)
 			strncat(tmp_buf, tmp, strlen(tmp));
 	}
-	pr_info("[rc_timer] %s", tmp_buf);
+	pr_debug("[rc_timer] %s", tmp_buf);
 }
 
 static void consys_bus_hang_dump_a(void)
@@ -256,7 +256,7 @@ static void consys_bus_hang_dump_a(void)
 	r10 = CONSYS_REG_READ(CON_REG_INFRACFG_AO_ADDR + INFRA_TOPAXI_PROTECTEN2_STA1_OFFSET);
 	r11 = CONSYS_REG_READ(CON_REG_INFRACFG_AO_ADDR + INFRA_TOPAXI_PROTECTEN_STA1_OFFSET);
 
-	pr_info("[CONN_BUS_A] %s %s [%x][%x][%x][%x][%x][%x] [%x][%x] [%x][%x][%x]", tmp_buf,
+	pr_debug("[CONN_BUS_A] %s %s [%x][%x][%x][%x][%x][%x] [%x][%x] [%x][%x][%x]", tmp_buf,
 				rc_buf, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11);
 
 	consys_bus_hang_dump_a_rc();
@@ -360,9 +360,9 @@ static void consys_bus_hang_dump_b(void)
 	 */
 	r7 = CONSYS_REG_READ(CON_REG_HOST_CSR_ADDR + CONN_HOST_CSR_TOP_BUS_TIMEOUT_IRQ);
 
-	pr_info("[CONN_BUS_B] infra_off %s [%x][%x] [%x][%x][%x] [%x] [%x]"
+	pr_debug("[CONN_BUS_B] infra_off %s [%x][%x] [%x][%x][%x] [%x] [%x]"
 				, tmp_buf, r1, r2, r3, r4, r5, r6, r7);
-	pr_info("[CONN_BUS_B] 0x1806_0294:[0x%08x] 0x1806_0220:[0x%08x]\n",
+	pr_debug("[CONN_BUS_B] 0x1806_0294:[0x%08x] 0x1806_0220:[0x%08x]\n",
 		CONSYS_REG_READ(CON_REG_HOST_CSR_ADDR + 0x0294),
 		CONSYS_REG_READ(CON_REG_HOST_CSR_ADDR + 0x0220));
 }
@@ -377,7 +377,7 @@ static void consys_bus_hang_dump_d(void)
 	 */
 	r1 = CONSYS_REG_READ(CON_REG_HOST_CSR_ADDR + CONN_HOST_CSR_DBG_DUMMY_3);
 	if (((r1 >> 8) & 0x01) == 0) {
-		pr_info("[CONN_BUS_D] conninfra off is not on");
+		pr_debug("[CONN_BUS_D] conninfra off is not on");
 		return;
 	}
 
@@ -411,7 +411,7 @@ static void consys_bus_hang_dump_d(void)
 	 *
 	 * 0x1800_1620[3] wf2conn slp prot
 	 */
-	pr_info("[CONN_BUS_D] [%x][%x] [%x][%x][%x] [%x][%x] [%x][%x] [%x][%x] [%x]",
+	pr_debug("[CONN_BUS_D] [%x][%x] [%x][%x][%x] [%x][%x] [%x][%x] [%x][%x] [%x]",
 		CONSYS_REG_READ(CON_REG_INFRA_CFG_ADDR + CONN_INFRA_CFG_PLL_STATUS), /* PLL */
 		CONSYS_REG_READ(CON_REG_INFRA_CFG_ADDR + CONN_INFRA_CFG_OSC_STATUS), /* OSC */
 
@@ -451,7 +451,7 @@ int consys_dump_cpupcr(enum conn_dump_cpupcr_type type, int times, unsigned long
 	int i;
 
 	for (i = 0; i < times; i++) {
-		pr_info("%s: wm pc=0x%x, wm lp=0x%x, bt pc=0x%x",
+		pr_debug("%s: wm pc=0x%x, wm lp=0x%x, bt pc=0x%x",
 			__func__,
 			CONSYS_REG_READ(CON_REG_HOST_CSR_ADDR + CONN_HOST_CSR_WM_MCU_PC_DBG),
 			CONSYS_REG_READ(CON_REG_HOST_CSR_ADDR + CONN_HOST_CSR_WM_MCU_GPR_DBG),
@@ -535,7 +535,7 @@ static int consys_is_bus_hang(void)
 	if (r & TOP_SLP_PROT_CTRL_CONN_INFRA_ON2OFF_SLP_PROT_ACK_BIT)
 		ret |= CONNINFRA_ON2OFF_SLP_PROT_ERR;
 	if (ret) {
-		pr_info("[%s] ret=[%x]", __func__, ret);
+		pr_debug("[%s] ret=[%x]", __func__, ret);
 		consys_bus_hang_dump_c();
 		return ret;
 	}
@@ -597,7 +597,7 @@ int consys_check_reg_readable(void)
 			spent += delay_time;
 			retry--;
 			if (retry == 0)
-				pr_info("[%s] retry=0 r=[%x]", __func__, r);
+				pr_debug("[%s] retry=0 r=[%x]", __func__, r);
 			else
 				delay_time = 10;
 			rnd = get_random_int() % 10;
@@ -608,7 +608,7 @@ int consys_check_reg_readable(void)
 		break;
 	}
 	if (retry == 0 || spent >= max_wait) {
-		pr_info("[%s] readable fail = bus clock retry=[%d] spent=[%d]", __func__,
+		pr_debug("[%s] readable fail = bus clock retry=[%d] spent=[%d]", __func__,
 					retry, spent);
 		return 0;
 	}
@@ -683,7 +683,7 @@ int consys_find_can_write_reg(unsigned int *idx, unsigned long *offset)
 	addr = conn_reg.reg_base_addr[CONN_INFRA_RGU_BASE_INDEX].vir_addr;
 	max = conn_reg.reg_base_addr[CONN_INFRA_RGU_BASE_INDEX].size;
 
-	pr_info("[%s] addr=[%p]\n", __func__, addr);
+	pr_debug("[%s] addr=[%p]\n", __func__, addr);
 
 	for (i = 0x0; i < max; i += 0x4) {
 		ret = 0;
@@ -701,7 +701,7 @@ int consys_find_can_write_reg(unsigned int *idx, unsigned long *offset)
 
 		CONSYS_REG_WRITE_MASK(addr_offset, before, mask);
 
-		pr_info("[%s] addr=[%p] [%d]\n", __func__, addr_offset, ret);
+		pr_debug("[%s] addr=[%p] [%d]\n", __func__, addr_offset, ret);
 		if (ret == 0) {
 			*idx = CONN_INFRA_RGU_BASE_INDEX;
 			*offset = i;
@@ -750,7 +750,7 @@ int consys_reg_init(struct platform_device *pdev)
 	int flag, i = 0;
 
 	node = pdev->dev.of_node;
-	pr_info("[%s] node=[%p]\n", __func__, node);
+	pr_debug("[%s] node=[%p]\n", __func__, node);
 	if (node) {
 		for (i = 0; i < CONSYS_BASE_ADDR_MAX; i++) {
 			base_addr = &conn_reg.reg_base_addr[i];
@@ -767,7 +767,7 @@ int consys_reg_init(struct platform_device *pdev)
 				(unsigned long) of_iomap(node, i);
 			of_get_address(node, i, &(base_addr->size), &flag);
 
-			pr_info("Get Index(%d-%s) phy(0x%zx) baseAddr=(0x%zx) size=(0x%zx)",
+			pr_debug("Get Index(%d-%s) phy(0x%zx) baseAddr=(0x%zx) size=(0x%zx)",
 				i, consys_base_addr_index_to_str[i], base_addr->phy_addr,
 				base_addr->vir_addr, base_addr->size);
 		}
@@ -786,7 +786,7 @@ static int consys_reg_deinit(void)
 
 	for (i = 0; i < CONSYS_BASE_ADDR_MAX; i++) {
 		if (conn_reg.reg_base_addr[i].vir_addr) {
-			pr_info("[%d] Unmap %s (0x%zx)",
+			pr_debug("[%d] Unmap %s (0x%zx)",
 				i, consys_base_addr_index_to_str[i],
 				conn_reg.reg_base_addr[i].vir_addr);
 			iounmap((void __iomem*)conn_reg.reg_base_addr[i].vir_addr);

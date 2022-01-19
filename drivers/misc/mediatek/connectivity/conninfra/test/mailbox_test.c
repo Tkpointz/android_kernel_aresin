@@ -85,9 +85,9 @@ static void message_from_remote(struct mbox_client *cl, void *msg)
 {
 	struct demo_client *dc = container_of(cl, struct demo_client, cl);
 	if (dc->async) {
-		pr_info("AAAAsync");
+		pr_debug("AAAAsync");
 	} else {
-		pr_info("SSSSSSSync");
+		pr_debug("SSSSSSSync");
 	}
 }
 
