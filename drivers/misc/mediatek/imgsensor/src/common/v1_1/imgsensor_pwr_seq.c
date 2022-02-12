@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -19,6 +20,44 @@
 
 /* Legacy design */
 struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
+#if defined(OV64B40SUNNY_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_OV64B40SUNNY_MIPI_RAW,
+		{
+			{RST, Vol_Low, 2},
+			{DOVDD, Vol_1800, 0},
+			{AVDD, Vol_2800, 0},
+			{DVDD, Vol_1100, 2},
+			{SensorMCLK, Vol_High, 2},
+			{RST, Vol_High, 5}
+		},
+	},
+#endif
+#if defined(OV16A1QOFILM_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_OV16A1QOFILM_MIPI_RAW,
+		{
+			{RST, Vol_Low, 2},
+			{DOVDD, Vol_1800, 0},
+			{DVDD, Vol_1200, 0},
+			{AVDD, Vol_2800, 2},
+			{SensorMCLK, Vol_High, 2},
+			{RST, Vol_High, 5},
+		},
+	},
+#endif
+#if defined(GC02M1SUNNY_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_GC02M1SUNNY_MIPI_RAW,
+		{
+			{RST, Vol_Low, 2},
+			{DOVDD, Vol_1800, 1},
+			{AVDD, Vol_2800, 2},
+			{SensorMCLK, Vol_High, 1},
+			{RST, Vol_High, 5},
+		},
+	},
+#endif
 #if defined(S5KJD1_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_S5KJD1_MIPI_RAW,
@@ -35,17 +74,16 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		},
 	},
 #endif
-#if defined(IMX586_MIPI_RAW)
+#if defined(IMX355SUNNY_MIPI_RAW)
 	{
-		SENSOR_DRVNAME_IMX586_MIPI_RAW,
+		SENSOR_DRVNAME_IMX355SUNNY_MIPI_RAW,
 		{
-			{RST, Vol_Low, 1},
+			{RST, Vol_Low, 2},
 			{AVDD, Vol_2800, 0},
-			{AFVDD, Vol_2800, 0},
-			{DVDD, Vol_1100, 0},
-			{DOVDD, Vol_1800, 1},
-			{SensorMCLK, Vol_High, 1},
-			{RST, Vol_High, 3}
+			{DVDD, Vol_1200, 0},
+			{DOVDD, Vol_1800, 2},
+			{SensorMCLK, Vol_High, 3},
+			{RST, Vol_High, 5}
 		},
 	},
 #endif

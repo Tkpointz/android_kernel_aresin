@@ -57,3 +57,10 @@ config DRM_MTK_DISABLE_AEE_LAYER
 	  if this value is y, will not produce AEE.
 	  if this value is n, will produce AEE.
 	  If you do not produce AEE, please set it to Y in xxx_defconfig.
+
+config MI_ESD_CHECK
+	bool "use xiaomi esd check thread"
+	help
+	  Use xiaomi esd check instead of MTK comes with esd check.
+	  if this value is y, will use xiaomi esd check.
+	  if this value is n, will use MTK comes with esd check.

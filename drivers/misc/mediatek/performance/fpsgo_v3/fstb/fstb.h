@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -55,6 +56,10 @@ void fpsgo_fbt2fstb_query_fps(int pid, unsigned long long bufID,
 		int tgid, unsigned long long mid);
 void fpsgo_ctrl2fstb_dfrc_fps(int dfrc_fps);
 
+/* EARA */
+void eara2fstb_get_tfps(int max_cnt, int *pid, unsigned long long *buf_id,
+				int *tfps, char name[][16]);
+void eara2fstb_tfps_mdiff(int pid, unsigned long long buf_id, int diff);
 #else
 static inline int is_fstb_enable(void) { return 0; }
 static inline int fpsgo_ctrl2fstb_switch_fstb(int en) { return 0; }
@@ -82,6 +87,12 @@ static inline void fpsgo_fbt2fstb_query_fps(int pid,
 			int *target_fps, int *target_cpu_time,
 			int tgid, unsigned long long mid) { }
 static void fpsgo_ctrl2fstb_dfrc_fps(int dfrc_fps) { }
+
+/* EARA */
+static inline void eara2fstb_get_tfps(int max_cnt, int *pid,
+		unsigned long long *buf_id, int *tfps, char name[][16]) { }
+static inline void eara2fstb_tfps_mdiff(int pid, unsigned long long buf_id,
+		int diff) { }
 
 #endif
 

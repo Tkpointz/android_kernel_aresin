@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011-2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -355,6 +356,7 @@ struct GED_BRIDGE_OUT_QUERY_DVFS_FREQ_PRED {
 	int gpu_freq_cur;
 	int gpu_freq_max;
 	int gpu_freq_dvfs_pred;
+	int target_fps;
 };
 
 /*****************************************************************************

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -41,7 +42,6 @@
 #define UNIT_TRANS_60 60
 
 #define MAX_TABLE 10
-#define MAX_CHARGE_RDC 5
 
 /* ============================================================ */
 /* power misc related */
@@ -52,7 +52,7 @@
 #define SHUTDOWN_TIME 40
 #define AVGVBAT_ARRAY_SIZE 30
 #define INIT_VOLTAGE 3450
-#define BATTERY_SHUTDOWN_TEMPERATURE 60
+#define BATTERY_SHUTDOWN_TEMPERATURE 70
 
 /* ============================================================ */
 /* typedef and Struct*/
@@ -232,7 +232,6 @@ enum Fg_kernel_cmds {
 	FG_KERNEL_CMD_REQ_CHANGE_AGING_DATA,
 	FG_KERNEL_CMD_AG_LOG_TEST,
 	FG_KERNEL_CMD_CHG_DECIMAL_RATE,
-	FG_KERNEL_CMD_FORCE_BAT_TEMP,
 	FG_KERNEL_CMD_SEND_BH_DATA,
 
 	FG_KERNEL_CMD_FROM_USER_NUMBER
@@ -321,7 +320,6 @@ enum daemon_cmd_int_data {
 	FG_GET_DIFF_SOC_SET = 8,
 	FG_GET_IS_FORCE_FULL = 9,
 	FG_GET_ZCV_INTR_CURR = 10,
-	FG_GET_CHARGE_POWER_SEL = 11,
 	FG_GET_MAX,
 	FG_SET_ANCHOR = 999,
 	FG_SET_SOC = FG_SET_ANCHOR + 1,
@@ -506,17 +504,6 @@ struct fuel_gauge_custom_data {
 	int ui_full_limit_ith4;
 	int ui_full_limit_time;
 
-	int ui_full_limit_fc_soc0;
-	int ui_full_limit_fc_ith0;
-	int ui_full_limit_fc_soc1;
-	int ui_full_limit_fc_ith1;
-	int ui_full_limit_fc_soc2;
-	int ui_full_limit_fc_ith2;
-	int ui_full_limit_fc_soc3;
-	int ui_full_limit_fc_ith3;
-	int ui_full_limit_fc_soc4;
-	int ui_full_limit_fc_ith4;
-
 	/* using voltage to limit uisoc in 1% case */
 	int ui_low_limit_en;
 	int ui_low_limit_soc0;
@@ -594,28 +581,12 @@ struct FUELGAUGE_TEMPERATURE {
 	signed int TemperatureR;
 };
 
-enum CHARGE_SEL {
-	CHARGE_NORMAL,
-	CHARGE_R1,
-	CHARGE_R2,
-	CHARGE_R3,
-	CHARGE_R4,
-};
-
-struct FUELGAUGE_CHARGER_STRUCT {
-	int rdc[MAX_CHARGE_RDC];
-};
-
-struct FUELGAUGE_CHARGE_PSEUDO100_S {
-	int pseudo[MAX_CHARGE_RDC];
-};
-
 struct FUELGAUGE_PROFILE_STRUCT {
 	unsigned int mah;
 	unsigned short voltage;
 	unsigned short resistance; /* Ohm*/
-	unsigned int percentage;
-	struct FUELGAUGE_CHARGER_STRUCT charge_r;
+	unsigned short resistance2; /* Ohm*/
+	unsigned short percentage;
 };
 
 struct fuel_gauge_table {
@@ -630,7 +601,6 @@ struct fuel_gauge_table {
 	int shutdown_hl_zcv;
 
 	int size;
-	struct FUELGAUGE_CHARGE_PSEUDO100_S r_pseudo100;
 	struct FUELGAUGE_PROFILE_STRUCT fg_profile[100];
 };
 
@@ -658,6 +628,7 @@ struct fgd_cmd_param_t_custom {
 struct battery_data {
 	struct power_supply_desc psd;
 	struct power_supply *psy;
+	struct power_supply *ti_bms_psy;
 	int BAT_STATUS;
 	int BAT_HEALTH;
 	int BAT_PRESENT;
@@ -666,6 +637,11 @@ struct battery_data {
 	/* Add for Battery Service */
 	int BAT_batt_vol;
 	int BAT_batt_temp;
+	bool CHG_FULL_STATUS;
+	/* Add for External Gauge */
+	bool USE_TI_GAUGE;
+	bool FORCE_RECHARGE;
+	bool night_chg_flag;
 };
 
 struct BAT_EC_Struct {
@@ -829,7 +805,6 @@ struct mtk_battery {
 
 /*battery full*/
 	bool is_force_full;
-	int charge_power_sel;
 
 /*battery plug out*/
 	bool disable_plug_int;
@@ -891,9 +866,7 @@ struct mtk_battery {
 
 	bool is_reset_aging_factor;
 	int aging_factor;
-
-	int bat_health;
-	int show_ag;
+	int health;
 	int soc_decimal_rate;
 
 	struct timespec uisoc_oldtime;
@@ -997,7 +970,6 @@ extern int fg_get_battery_temperature_for_zcv(void);
 extern int battery_get_charger_zcv(void);
 extern bool is_fg_disabled(void);
 extern int battery_notifier(int event);
-extern bool set_charge_power_sel(enum CHARGE_SEL select);
 
 /* pmic */
 extern int pmic_get_battery_voltage(void);
@@ -1054,9 +1026,6 @@ extern void fg_update_sw_low_battery_check(unsigned int thd);
 extern void fg_sw_bat_cycle_accu(void);
 extern void fg_ocv_query_soc(int ocv);
 extern void fg_int_event(struct gauge_device *gauge_dev, enum gauge_event evt);
-extern int mtk_get_bat_health(void);
-extern int mtk_get_bat_show_ag(void);
-
 
 /* GM3 simulator */
 extern void gm3_log_init(void);
@@ -1079,4 +1048,7 @@ void zcv_filter_dump(struct zcv_filter *zf);
 bool zcv_check(struct zcv_filter *zf);
 void zcv_filter_init(struct zcv_filter *zf);
 
+/* ffc */
+extern int chg_get_fastcharge_mode(void);
+extern int chg_set_fastcharge_mode(bool enable);
 #endif /* __MTK_BATTERY_INTF_H__ */

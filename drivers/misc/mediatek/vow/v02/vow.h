@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -55,7 +56,6 @@
 
 #define VOW_WAITCHECK_INTERVAL_MS      1
 #define MAX_VOW_INFO_LEN               7
-#define VOW_VOICE_RECORD_LOG_THRESHOLD 320
 #define VOW_VOICE_RECORD_THRESHOLD     2560 /* 80ms */
 #define VOW_VOICE_RECORD_BIG_THRESHOLD 8320 /* 260ms */
 #define VOW_IPI_SEND_CNT_TIMEOUT       500 /* 500ms */
@@ -144,8 +144,6 @@
 
 #define VOW_BARGEIN_IRQ_MAX_NUM       32
 #endif  /* #ifdef CONFIG_MTK_VOW_BARGE_IN_SUPPORT */
-
-#define VOICE_DATA_MSG_NUM            10
 
 #define KERNEL_VOW_DRV_VER              "2.0.13"
 #define DEFAULT_GOOGLE_ENGINE_VER       2147483647
@@ -420,11 +418,6 @@ struct vow_payloaddump_info_kernel_t {
 	compat_size_t max_payloaddump_size;
 };
 
-struct voice_data_msg_t {
-	unsigned int offset;
-	unsigned int length;
-};
-
 #else  /* #ifdef CONFIG_COMPAT */
 
 struct vow_speaker_model_t {
@@ -465,11 +458,6 @@ struct vow_payloaddump_info_t {
 	long return_payloaddump_addr;
 	long return_payloaddump_size_addr;
 	long max_payloaddump_size;
-};
-
-struct voice_data_msg_t {
-	unsigned int offset;
-	unsigned int length;
 };
 
 #endif  /* #ifdef CONFIG_COMPAT */

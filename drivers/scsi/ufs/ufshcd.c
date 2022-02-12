@@ -3,6 +3,7 @@
  *
  * This code is based on drivers/scsi/ufs/ufshcd.c
  * Copyright (C) 2011-2013 Samsung India Software Operations
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
  *
  * Authors:
@@ -185,7 +186,7 @@ struct ufs_pm_lvl_states ufs_pm_lvl_states[] = {
 	{UFS_POWERDOWN_PWR_MODE, UIC_LINK_OFF_STATE},
 };
 
-#define DID_FATAL 0xFF
+#define DID_FATAL 0xFFFF
 
 /* MTK PATCH: For reference of ufs_pm_lvl_states array size from outside */
 const int ufs_pm_lvl_states_size = ARRAY_SIZE(ufs_pm_lvl_states);
@@ -260,38 +261,6 @@ static struct ufs_dev_fix ufs_fixups[] = {
 		UFS_DEVICE_QUIRK_WRITE_BOOSETER_FLUSH),
 	UFS_FIX(UFS_VENDOR_TOSHIBA, "THGJFCT2T84BAKCB",
 		UFS_DEVICE_QUIRK_WRITE_BOOSETER_FLUSH),
-
-#if defined(CONFIG_SCSI_SKHPB)
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H28S",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ15ACPMA",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ15AECMA",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ15AECMM",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ15AFAMA",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ15AFAMM",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ15AJAMM",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ21AECMM",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ21AECMZ",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ21AFAMM",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ21AFAMZ",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ21AJAMM",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-	UFS_FIX(UFS_VENDOR_SKHYNIX, "H9HQ21AHDMM",
-		SKHPB_QUIRK_PURGE_HINT_INFO_WHEN_SLEEP),
-#endif
-
 
 	END_FIX
 };
@@ -1398,6 +1367,10 @@ static int ufshcd_wait_for_doorbell_clr(struct ufs_hba *hba,
 			break;
 		}
 
+		dev_info(hba->dev, "%s: tr: %lu, tm: %lu\n",
+			 hweight_long(tr_doorbell),
+			 hweight_long(tm_doorbell));
+
 		spin_unlock_irqrestore(hba->host->host_lock, flags);
 		schedule();
 		if (ktime_to_us(ktime_sub(ktime_get(), start)) >
@@ -2232,10 +2205,6 @@ void ufshcd_send_command(struct ufs_hba *hba, unsigned int task_tag)
 	ufshcd_writel(hba, 1 << task_tag, REG_UTP_TRANSFER_REQ_DOOR_BELL);
 	/* Make sure that doorbell is committed immediately */
 	wmb();
-
-	if ((hba->quirks & UFSHCD_QUIRK_UFS_HCI_PERF_HEURISTIC) &&
-	    hba->ufs_mtk_qcmd_r_cmd_cnt)
-		udelay(1);
 
 	if (hba->lrb[task_tag].cmd)
 		ufshcd_cond_add_cmd_trace(hba, task_tag, UFS_TRACE_SEND);
@@ -5690,7 +5659,7 @@ static int __ufshcd_transfer_req_compl(struct ufs_hba *hba,
 
 				result = (DID_REQUEUE << 16);
 				requeued_reqs |= (1UL << index);
-			} else if (ocs_err_status & 0xC0000000) {
+			} else if (ocs_err_status) {
 				result = (DID_FATAL << 16);
 			} else {
 				result = ufshcd_transfer_rsp_status(hba, lrbp, index);
@@ -6210,8 +6179,6 @@ static void ufshcd_err_handler(struct work_struct *work)
 
 	hba = container_of(work, struct ufs_hba, eh_work);
 
-	down(&hba->eh_sem);
-
 	/* Error is happened in suspend/resume, bypass rpm get else deadlock */
 	if (!hba->pm_op_in_progress) {
 		pm_runtime_get_sync(hba->dev);
@@ -6308,25 +6275,6 @@ skip_pending_xfer_clear:
 					__func__);
 			hba->ufshcd_state = UFSHCD_STATE_ERROR;
 		}
-
-		/* Check again if need reset host */
-		if (!err && hba->invalid_resp_upiu) {
-			spin_unlock_irqrestore(hba->host->host_lock, flags);
-
-			ufs_mtk_pltfrm_host_sw_rst(hba, SW_RST_TARGET_UFSHCI);
-			ufshcd_hba_enable(hba);
-			err = ufshcd_dme_set(hba,
-				UIC_ARG_MIB_SEL(VENDOR_UNIPROPOWERDOWNCONTROL,
-				0), 0);
-			if (err)
-				dev_info(hba->dev, "ir_hdlr: failed to clr unipro pdn ctrl\n");
-			ufshcd_set_link_active(hba);
-			ufshcd_make_hba_operational(hba);
-
-			spin_lock_irqsave(hba->host->host_lock, flags);
-			hba->invalid_resp_upiu = false;
-		}
-
 		/*
 		 * Inform scsi mid-layer that we did reset and allow to handle
 		 * Unit Attention properly.
@@ -6385,7 +6333,6 @@ static void ufshcd_inv_resp_handler(struct work_struct *work)
 	ufshcd_wait_for_doorbell_clr(hba, DOORBELL_CLR_TOUT_US, true,
 				     2, 0);
 	ufshcd_wait_for_doorbell_clr(hba, 10000, true, 1, 0);
-	usleep_range(5000, 5100);
 	ret = ufshcd_dme_set(hba,
 		UIC_ARG_MIB_SEL(VENDOR_UNIPROPOWERDOWNCONTROL, 0), 1);
 	if (ret)
@@ -6570,12 +6517,9 @@ static void ufshcd_update_uic_error(struct ufs_hba *hba)
 			dev_err(hba->dev, "PA_INIT_ERROR (FATAL ERROR)\n");
 		if (test_bit(14, &reg_ul))
 			dev_err(hba->dev, "PA_ERROR_IND_RECEIVED\n");
-		if (test_bit(15, &reg_ul))
-			dev_err(hba->dev, "PA_INIT (3.0 FATAL ERROR)\n");
 	}
 #endif
-	if ((reg & UIC_DATA_LINK_LAYER_ERROR_PA_INIT_ERROR) ||
-		(reg & UIC_DATA_LINK_LAYER_ERROR_PA_INIT))
+	if (reg & UIC_DATA_LINK_LAYER_ERROR_PA_INIT)
 		hba->uic_error |= UFSHCD_UIC_DL_PA_INIT_ERROR;
 	else if (hba->dev_quirks &
 		   UFS_DEVICE_QUIRK_RECOVERY_FROM_DL_NAC_ERRORS) {
@@ -7197,7 +7141,6 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
 	spin_lock_irqsave(host->host_lock, flags);
 
 	ufshcd_outstanding_req_clear(hba, tag);
-	ufs_mtk_perf_heurisic_req_done(hba, cmd);
 	hba->lrb[tag].cmd = NULL;
 	ufshcd_vops_res_ctrl(hba, UFS_RESCTL_CMD_COMP);
 	ufs_mtk_auto_hiber8_quirk_handler(hba, true);
@@ -9524,10 +9467,6 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	ufsf_hpb_resume(&hba->ufsf);
 	ufsf_tw_resume(&hba->ufsf);
 #endif
-#if defined(CONFIG_SCSI_SKHPB)
-	skhpb_resume(hba);
-#endif
-
 	/* MTK PATCH: Enable auto-hibern8 if resume is successful */
 	ufshcd_vops_auto_hibern8(hba, true);
 

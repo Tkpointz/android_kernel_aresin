@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -14,12 +15,27 @@
 #ifndef _MTK_DRM_RECOVERY_H
 #define _MTK_DRM_RECOVERY_H
 
+#define ESD_CHECK_NUM 3
+
 struct mtk_drm_private;
 
 enum mtk_esd_chk_mode {
 	READ_EINT,
 	READ_LCM,
 };
+
+#ifdef CONFIG_MI_ESD_CHECK
+struct mi_esd_ctx {
+	struct task_struct *disp_esd_irq_chk_task;
+	wait_queue_head_t err_flag_wq;
+	atomic_t err_flag_event;
+	int err_flag_irq_gpio;
+	int err_flag_irq_flags;
+	int err_flag_irq;
+	bool err_flag_enabled;
+	bool panel_init;
+};
+#endif
 
 struct mtk_drm_esd_ctx {
 	struct task_struct *disp_esd_chk_task;
@@ -32,9 +48,15 @@ struct mtk_drm_esd_ctx {
 	u32 chk_active;
 	u32 chk_mode;
 	u32 chk_sta;
+#ifdef CONFIG_MI_ESD_CHECK
+	struct task_struct *mi_disp_esd_chk_task;
+	bool panel_init;
+	char esd_read_result [ESD_CHECK_NUM][10];
+#endif
 };
 
 void mtk_disp_esd_check_switch(struct drm_crtc *crtc, bool enable);
+void mi_disp_err_flag_esd_check_switch(struct drm_crtc *crtc, bool enable);
 void mtk_disp_chk_recover_init(struct drm_crtc *crtc);
 long disp_dts_gpio_init(struct device *dev, struct mtk_drm_private *private);
 

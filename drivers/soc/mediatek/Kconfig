@@ -69,3 +69,8 @@ config MTK_LPM
 	  platform could enter deeper sleep mode when cpu preparing to
 	  power down if it have sufficient time between warmboot.
 
+config XIAOMI_HWID
+	bool "Xiaomi HWID interface"
+	default y
+	help
+	  Say yes to add support for Xiaomi HWID function interfaces.

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #include <linux/kernel.h>
@@ -366,7 +367,7 @@ void cmdq_util_dump_dbg_reg(void *chan)
 
 	dbg3 = readl(base + GCE_DBG3);
 
-	cmdq_util_msg(
+	cmdq_util_user_msg(chan,
 		"id:%u dbg0:%#x %#x %#x dbg2:%#x %#x %#x %#x %#x %#x dbg3:%#x",
 		id,
 		dbg0[0], dbg0[1], dbg0[2],

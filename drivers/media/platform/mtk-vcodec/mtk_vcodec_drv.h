@@ -1,5 +1,6 @@
 /*
 * Copyright (c) 2016 MediaTek Inc.
+* Copyright (C) 2021 XiaoMi, Inc.
 * Author: PC Chen <pc.chen@mediatek.com>
 *         Tiffany Lin <tiffany.lin@mediatek.com>
 *
@@ -162,8 +163,7 @@ enum mtk_dec_param {
 	MTK_DEC_PARAM_NAL_SIZE_LENGTH = (1 << 6),
 	MTK_DEC_PARAM_FIXED_MAX_OUTPUT_BUFFER = (1 << 7),
 	MTK_DEC_PARAM_SEC_DECODE = (1 << 8),
-	MTK_DEC_PARAM_OPERATING_RATE = (1 << 9),
-	MTK_DEC_PARAM_FORCE_RES_CHANGE = (1 << 10)
+	MTK_DEC_PARAM_OPERATING_RATE = (1 << 9)
 };
 
 enum venc_lock {
@@ -188,7 +188,6 @@ struct mtk_dec_params {
 	u64	timestamp;
 	unsigned int	total_frame_bufq_count;
 	unsigned int	queued_frame_buf_count;
-	unsigned int    force_res_change;
 };
 
 /**

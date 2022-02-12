@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -65,6 +66,7 @@ struct FSTB_FRAME_INFO {
 	unsigned long long bufid;
 	int in_list;
 	int new_info;
+	int target_fps_diff;
 
 	long long m_c_time;
 	unsigned int m_c_cap;

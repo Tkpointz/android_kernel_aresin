@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -270,6 +271,11 @@ struct sensor_fifo {
 	uint32_t fifo_size;
 	uint32_t reserve;
 	struct data_unit_t data[0];
+};
+
+struct als_cali_fifo {
+	uint32_t magic_num;
+	int32_t data[20][12];
 };
 
 struct SCP_SENSOR_HUB_REQ {

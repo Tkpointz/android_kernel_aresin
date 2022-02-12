@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  */
 
@@ -257,7 +258,7 @@ static int led_level_set(struct led_classdev *led_cdev,
 		container_of(led_cdev, struct led_conf_info, cdev);
 	struct mtk_led_data *led_dat =
 		container_of(led_conf, struct mtk_led_data, conf);
-
+	pr_debug("backlight = %d, last backlight = %d", brightness, led_dat->brightness);
 	if (led_dat->brightness == brightness)
 		return 0;
 
@@ -274,6 +275,7 @@ static int led_level_set(struct led_classdev *led_cdev,
 #endif
 
 led_dat->brightness = brightness;
+
 #ifdef CONFIG_LEDS_BRIGHTNESS_CHANGED
 	call_notifier(1, led_dat);
 #endif
@@ -283,6 +285,8 @@ led_dat->brightness = brightness;
 	led_level_disp_set(led_dat, brightness);
 	led_dat->last_level = brightness;
 #endif
+
+	sysfs_notify(&led_cdev->dev->kobj, NULL, "brightness");
 	return 0;
 
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -543,8 +544,12 @@ int mtk_power_misc_psy_event(
 				bm_err(
 					"battery temperature >= %d,shutdown",
 					tmp);
-
-				wake_up_overheat(&sdc);
+				if (!is_kernel_power_off_charging()) {
+					/*TODO: other boot mode*/
+					wake_up_overheat(&sdc);
+				} else {
+					bm_err("Charge mode over temp but should not shutdown\n");
+				}
 			}
 		}
 	}

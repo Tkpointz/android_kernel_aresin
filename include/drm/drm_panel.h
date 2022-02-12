@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013, NVIDIA Corporation.  All rights reserved.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -93,6 +94,8 @@ struct drm_panel {
 	const struct drm_panel_funcs *funcs;
 
 	struct list_head list;
+
+	bool panel_initialized;
 };
 
 /**

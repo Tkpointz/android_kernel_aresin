@@ -1,4 +1,14 @@
 # SPDX-License-Identifier: GPL-2.0
+export MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
+subdir-ccflags-y += -Werror
+
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/
+subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
+subdir-ccflags-y += -I$(srctree)/drivers/mmc/host/mediatek/$(MTK_PLATFORM)/
+subdir-ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek/
+subdir-ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek/mi_disp/
+
 obj-$(CONFIG_DRM_PANEL_LVDS) += panel-lvds.o
 obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 obj-$(CONFIG_DRM_PANEL_INNOLUX_P079ZCA) += panel-innolux-p079zca.o
@@ -58,3 +68,6 @@ obj-$(CONFIG_DRM_PANEL_TRULY_FT8756_VDO) += panel-truly-ft8756-vdo.o
 obj-$(CONFIG_DRM_PANEL_TRULY_FT8756_VDO_FAKE_WCG) += panel-truly-ft8756-vdo-fake-wcg.o
 obj-$(CONFIG_DRM_PANEL_TRULY_NT35595_CMD) += panel-truly-nt35595-cmd.o
 obj-$(CONFIG_DRM_PANEL_TRULY_NT35595_VDO) += panel-truly-nt35595-vdo.o
+obj-$(CONFIG_DRM_PANEL_K10_42_02_0A_DSC_CMD) += panel-k10-42-02-0a-dsc-cmd.o
+obj-$(CONFIG_DRM_PANEL_K10_42_02_0A_DSC_CMD) += aw2028_led.o
+

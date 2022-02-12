@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -14,7 +15,9 @@
 #define __CAM_CAL_LIST_H
 #include <linux/i2c.h>
 
-#define DEFAULT_MAX_EEPROM_SIZE_8K 0x2000
+#define DEFAULT_MAX_EEPROM_SIZE_8K  0x2000
+#define DEFAULT_MAX_EEPROM_SIZE_16K 0x4000
+
 
 typedef unsigned int (*cam_cal_cmd_func) (struct i2c_client *client,
 	unsigned int addr, unsigned char *data, unsigned int size);

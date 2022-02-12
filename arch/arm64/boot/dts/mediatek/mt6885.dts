@@ -2,6 +2,7 @@
  * Mediatek's MT6885 SoC device tree source
  *
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -5359,6 +5360,12 @@ page_owner=on loop.max_part=7";
 		mediatek,smi-id = <7>;
 	};
 
+	venc@17020000 {
+		compatible = "mediatek,venc";
+		reg = <0 0x17020000 0 0x10000>;
+		interrupts = <GIC_SPI 308 IRQ_TYPE_LEVEL_HIGH>;
+	};
+
 	jpgenc@17030000 {
 		compatible = "mediatek,jpgenc";
 		reg = <0 0x17030000 0 0x10000>;
@@ -5546,11 +5553,9 @@ page_owner=on loop.max_part=7";
 
 	vdec@16000000 {
 		compatible = "mediatek,mt6885-vcodec-dec";
-		reg = <0 0x1602f000 0 0x1000>,		/* VDEC_SYS */
+		reg = <0 0x1602F000 0 0x1000>,		/* VDEC_SYS */
 			 <0 0x16000000 0 0x1000>,		/* VDEC_BASE */
 			 <0 0x16020000 0 0x1000>,		/* VDEC_VLD */
-			 <0 0x16021000 0 0x1000>,		/* VDEC_MC */
-			 <0 0x16023000 0 0x1000>,		/* VDEC_MV */
 			 <0 0x16025000 0 0x4000>,		/* VDEC_MISC */
 			 <0 0x16010000 0 0x1000>, /* VDEC_LAT_MISC */
 			 <0 0x16011000 0 0x400>, /* VDEC_LAT_VLD */
@@ -7339,6 +7344,10 @@ page_owner=on loop.max_part=7";
 		mtk_dsp_ver = <0x1>;
 		swdsp_smartpa_process_enable = <0x5>;
 		mtk_dsp_mem_afe = <0x1 0x40000>; /* always enable */
+	};
+
+	snd_scp_ultra: snd_scp_ultra {
+		compatible = "mediatek,snd_scp_ultra";
 	};
 
 	audio_sram@11212000 {

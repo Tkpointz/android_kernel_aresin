@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -61,7 +62,7 @@ struct ioctl_packet {
 	uint8_t sensor_type;
 	union {
 		bool status;
-		int8_t byte[64];
+		int8_t byte[128];
 	};
 } __packed;
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015-2019, MICROTRUST Incorporated
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Copyright (c) 2015, Linaro Limited
  *
  * This software is licensed under the terms of the GNU General Public
@@ -219,12 +220,16 @@ static void soter_remove(struct soter_priv *soter)
 	kfree(soter);
 }
 
+extern int is_teei_boot(void);
 static int __init soter_driver_init(void)
 {
 	struct tee_shm_pool *pool = NULL;
 	struct tee_device *teedev = NULL;
 	void *memremaped_shm = NULL;
 	int rc;
+
+	if (is_teei_boot() == 0)
+		return 0;
 
 	soter_priv = kzalloc(sizeof(*soter_priv), GFP_KERNEL);
 	if (!soter_priv) {

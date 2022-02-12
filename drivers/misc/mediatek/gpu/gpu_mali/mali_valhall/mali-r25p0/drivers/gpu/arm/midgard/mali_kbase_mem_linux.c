@@ -613,8 +613,6 @@ unsigned long kbase_mem_evictable_reclaim_count_objects(struct shrinker *s,
 	if (unlikely(in_atomic() || in_interrupt() || (sc->gfp_mask & __GFP_ATOMIC))) {
 		return 0;
 	}
-
-
 	kctx = container_of(s, struct kbase_context, reclaim);
 
 	// MTK add to prevent false alarm
@@ -940,9 +938,6 @@ int kbase_mem_flags_change(struct kbase_context *kctx, u64 gpu_addr, unsigned in
 		 *   (==GPU VA) locations.
 		 */
 		if (atomic_read(&reg->cpu_alloc->gpu_mappings) > 1)
-			goto out_unlock;
-
-		if (atomic_read(&reg->cpu_alloc->kernel_mappings) > 0)
 			goto out_unlock;
 
 		if (new_needed) {
@@ -2257,9 +2252,6 @@ int kbase_mem_commit(struct kbase_context *kctx, u64 gpu_addr, u64 new_pages)
 	 */
 	if (atomic_read(&reg->gpu_alloc->gpu_mappings) > 1)
 		goto out_unlock;
-
-	if (atomic_read(&reg->cpu_alloc->kernel_mappings) > 0)
-		goto out_unlock;
 	/* can't grow regions which are ephemeral */
 	if (reg->flags & KBASE_REG_DONT_NEED)
 		goto out_unlock;
@@ -3045,7 +3037,6 @@ static int kbase_vmap_phy_pages(struct kbase_context *kctx,
 	if (map->sync_needed)
 		kbase_sync_mem_regions(kctx, map, KBASE_SYNC_TO_CPU);
 
-	kbase_mem_phy_alloc_kernel_mapped(reg->cpu_alloc);
 	return 0;
 }
 
@@ -3115,7 +3106,6 @@ static void kbase_vunmap_phy_pages(struct kbase_context *kctx,
 	if (map->sync_needed)
 		kbase_sync_mem_regions(kctx, map, KBASE_SYNC_TO_DEVICE);
 
-	kbase_mem_phy_alloc_kernel_unmapped(map->cpu_alloc);
 	map->offset_in_page = 0;
 	map->cpu_pages = NULL;
 	map->gpu_pages = NULL;

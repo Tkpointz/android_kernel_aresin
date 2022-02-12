@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -231,8 +232,6 @@ int ufs_mtk_generic_read_dme(u32 uic_cmd, u16 mib_attribute,
 	u16 gen_select_index, u32 *value, unsigned long retry_ms);
 void ufs_mtk_hwfde_cfg_cmd(struct ufs_hba *hba,
 	struct scsi_cmnd *cmd);
-void ufs_mtk_wait_idle_state(struct ufs_hba *hba,
-			    unsigned long retry_ms);
 int ufs_mtk_wait_link_state(struct ufs_hba *hba, u32 *state,
 			    unsigned long retry_ms);
 int ufs_mtk_linkup_fail_handler(struct ufs_hba *hba, int left_retry);

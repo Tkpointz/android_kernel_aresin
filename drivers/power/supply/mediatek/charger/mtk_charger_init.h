@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -37,23 +38,38 @@
 #define MAX_DMIVR_CHARGER_CURRENT 1400000 /* 1.4 A */
 
 /* sw jeita */
-#define JEITA_TEMP_ABOVE_T4_CV	4240000
-#define JEITA_TEMP_T3_TO_T4_CV	4240000
-#define JEITA_TEMP_T2_TO_T3_CV	4340000
-#define JEITA_TEMP_T1_TO_T2_CV	4240000
-#define JEITA_TEMP_T0_TO_T1_CV	4040000
-#define JEITA_TEMP_BELOW_T0_CV	4040000
+#define JEITA_TEMP_ABOVE_T4_CV	4100000
+#define JEITA_TEMP_T3_TO_T4_CV	4100000
+#define JEITA_TEMP_T2_TO_T3_CV	4450000
+#define JEITA_TEMP_T1P5_TO_T2_CV	4450000
+#define JEITA_TEMP_T1_TO_T1P5_CV	4450000
+#define JEITA_TEMP_T0_TO_T1_CV	4450000
+#define JEITA_TEMP_TN1_TO_T0_CV_A	4200000
+#define JEITA_TEMP_TN1_TO_T0_CV_B	4450000
+#define JEITA_TEMP_BELOW_T0_CV	4200000
 #define TEMP_T4_THRES  50
 #define TEMP_T4_THRES_MINUS_X_DEGREE 47
 #define TEMP_T3_THRES  45
 #define TEMP_T3_THRES_MINUS_X_DEGREE 39
 #define TEMP_T2_THRES  10
 #define TEMP_T2_THRES_PLUS_X_DEGREE 16
+#define TEMP_T1P5_THRES  5
+#define TEMP_T1P5_THRES_PLUS_X_DEGREE 10
 #define TEMP_T1_THRES  0
 #define TEMP_T1_THRES_PLUS_X_DEGREE 6
 #define TEMP_T0_THRES  0
 #define TEMP_T0_THRES_PLUS_X_DEGREE  0
+#define TEMP_TN1_THRES  -10
+#define TEMP_TN1_THRES_PLUS_X_DEGREE  -10
 #define TEMP_NEG_10_THRES 0
+#define TEMP_TN1_TO_T0_FCC_A  744750
+#define TEMP_TN1_TO_T0_FCC_B  100000
+#define TEMP_T0_TO_T1_FCC   2482500
+#define TEMP_T1_TO_T1P5_FCC 3475500
+#define TEMP_T1P5_TO_T2_FCC 5958000
+#define TEMP_T2_TO_T3_FCC   12400000
+#define TEMP_T3_TO_T4_FCC   5958000
+
 
 /* Battery Temperature Protection */
 #define MIN_CHARGE_TEMP  0
@@ -122,5 +138,35 @@
 #define SC_BATTERY_SIZE 3000
 #define SC_CV_TIME 3600
 #define SC_CURRENT_LIMIT 2000
+
+/* vote */
+#define STEP_A 4200000
+#define STEP_B 4300000
+#define STEP_C 4400000
+#define CURRENT_A 8937000
+#define CURRENT_B 7747500
+#define CURRENT_C 5958000
+#define CURRENT_MAX 12400000
+#define STEP_HY_DOWN_A 150000
+#define STEP_HY_DOWN_B 150000
+#define STEP_HY_DOWN_C 150000
+
+/* ffc */
+#define NON_FFC_IEOC 200000
+#define NON_FFC_CV 4450000
+#define FFC_IEOC 744000
+#define FFC_CV 4480000
+
+/* qc */
+#define HVDCP2P0_VOLATGE 7000
+
+#define INVALID_VBUS_THRE 3000
+
+/* defined for charger type recheck */
+#define CHARGER_RECHECK_DELAY_MS	30000
+#define TYPE_RECHECK_TIME_5S	5000
+#define TYPE_RECHECK_COUNT	3
+
+#define CHARGER_CONFIRM_DCP_DELAY_MS	4500
 
 #endif /*__MTK_CHARGER_INIT_H__*/

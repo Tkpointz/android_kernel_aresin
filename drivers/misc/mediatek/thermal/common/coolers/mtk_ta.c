@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -536,7 +537,7 @@ static int __init ta_init(void)
 
 	g_tad_pid = 0;
 	init_flag = false;
-	g_tad_ttj = 0;
+	g_tad_ttj = CLCTM_TARGET_TJ;
 	g_ta_status = 0;
 
 	/*add by willcai for the userspace to kernelspace*/

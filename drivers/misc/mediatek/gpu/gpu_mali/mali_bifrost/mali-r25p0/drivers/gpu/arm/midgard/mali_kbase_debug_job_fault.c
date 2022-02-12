@@ -518,24 +518,23 @@ void kbase_debug_job_fault_dev_term(struct kbase_device *kbdev)
 /*
  *  Initialize the relevant data structure per context
  */
-int kbase_debug_job_fault_context_init(struct kbase_context *kctx)
+void kbase_debug_job_fault_context_init(struct kbase_context *kctx)
 {
 
 	/* We need allocate double size register range
 	 * Because this memory will keep the register address and value
 	 */
 	kctx->reg_dump = vmalloc(0x4000 * 2);
-	if (kctx->reg_dump != NULL) {
-		if (kbase_debug_job_fault_reg_snapshot_init(kctx, 0x4000) ==
-		    false) {
-			vfree(kctx->reg_dump);
-			kctx->reg_dump = NULL;
-		}
-		INIT_LIST_HEAD(&kctx->job_fault_resume_event_list);
-		atomic_set(&kctx->job_fault_count, 0);
-	}
+	if (kctx->reg_dump == NULL)
+		return;
 
-	return 0;
+	if (kbase_debug_job_fault_reg_snapshot_init(kctx, 0x4000) == false) {
+		vfree(kctx->reg_dump);
+		kctx->reg_dump = NULL;
+	}
+	INIT_LIST_HEAD(&kctx->job_fault_resume_event_list);
+	atomic_set(&kctx->job_fault_count, 0);
+
 }
 
 /*

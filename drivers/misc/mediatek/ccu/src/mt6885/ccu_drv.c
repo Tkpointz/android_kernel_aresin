@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -321,7 +322,6 @@ static int ccu_open(struct inode *inode, struct file *flip)
 	int ret = 0, i;
 
 	struct ccu_user_s *user;
-	struct CcuMemHandle handle = {0};
 
 	mutex_lock(&g_ccu_device->dev_mutex);
 
@@ -353,11 +353,6 @@ static int ccu_open(struct inode *inode, struct file *flip)
 			ccu_ion_free_import_handle(
 				import_buffer_handle[i]);/*can't in spin_lock*/
 		}
-
-		handle.meminfo.cached = 0;
-		ccu_deallocate_mem(&handle);
-		handle.meminfo.cached = 1;
-		ccu_deallocate_mem(&handle);
 
 		ccu_ion_uninit();
 	}
@@ -1075,7 +1070,7 @@ static int ccu_release(struct inode *inode, struct file *flip)
 {
 	struct ccu_user_s *user = flip->private_data;
 	int i = 0;
-	struct CcuMemHandle handle = {0};
+	struct CcuMemHandle handle;
 
 	mutex_lock(&g_ccu_device->dev_mutex);
 

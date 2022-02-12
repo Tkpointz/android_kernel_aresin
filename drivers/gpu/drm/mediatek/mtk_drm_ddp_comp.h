@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -20,7 +21,7 @@
 #include "mtk_rect.h"
 #include "mtk_disp_pmqos.h"
 #include "mtk_drm_ddp_addon.h"
-
+#include "mi_disp/mi_disp_feature_id.h"
 struct device;
 struct device_node;
 struct drm_crtc;
@@ -241,14 +242,23 @@ enum mtk_ddp_io_cmd {
 	GET_FRAME_HRT_BW_BY_DATARATE,
 	DSI_SEND_DDIC_CMD,
 	DSI_READ_DDIC_CMD,
+	MI_DSI_READ_DDIC_CMD,
 	DSI_GET_VIRTUAL_HEIGH,
 	DSI_GET_VIRTUAL_WIDTH,
 	FRAME_DIRTY,
 	DSI_LFR_SET,
 	DSI_LFR_UPDATE,
 	DSI_LFR_STATUS_CHECK,
-	WDMA_WRITE_DST_ADDR0,
-	WDMA_READ_DST_SIZE,
+	DSI_SET_BL_BY_I2C,
+#ifdef CONFIG_MI_ESD_CHECK
+	ESD_RESTORE_BACKLIGHT,
+	MI_ESD_CHECK_READ,
+	MI_ESD_CHECK_CMP,
+#endif
+	DSI_FPS_SWITCH_MODE_SET,
+	DSI_FPS_SWITCH_MODE_WAIT,
+	MI_DISP_FEATURE_SET_DOZE_BRIGHTNESS,
+	MI_DSI_SET_BL,
 };
 
 struct golden_setting_context {
@@ -311,6 +321,7 @@ struct mtk_ddp_comp_funcs {
 			     struct cmdq_pkt *handle);
 	int (*io_cmd)(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle,
 		      enum mtk_ddp_io_cmd cmd, void *params);
+	int (*io_cmd_dispparam)(struct mtk_ddp_comp *comp, u32 cmd);
 	int (*user_cmd)(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle,
 		      unsigned int cmd, void *params);
 	void (*connect)(struct mtk_ddp_comp *comp, enum mtk_ddp_comp_id prev,
@@ -343,6 +354,8 @@ struct mtk_ddp_comp {
 	u32 qos_bw;
 	u32 fbdc_bw;
 	u32 hrt_bw;
+
+	struct mutex panel_lock;
 };
 
 static inline void mtk_ddp_comp_config(struct mtk_ddp_comp *comp,
@@ -420,11 +433,8 @@ static inline void mtk_ddp_comp_layer_config(struct mtk_ddp_comp *comp,
 {
 	if (comp && comp->funcs && comp->funcs->layer_config &&
 			!comp->blank_mode) {
-		DDPDBG("[DRM]func:%s, line:%d ==>\n",
-			__func__, __LINE__);
-		DDPDBG("comp_funcs:0x%p, layer_config:0x%p\n",
-			comp->funcs, comp->funcs->layer_config);
-
+		//DDPDBG("[DRM]func:%s, line:%d ==>\n", __func__, __LINE__);
+		//DDPDBG("comp_funcs:0x%p, layer_config:0x%p\n",comp->funcs, comp->funcs->layer_config);
 		comp->funcs->layer_config(comp, idx, state, handle);
 	}
 }

@@ -2,6 +2,7 @@
  * Mediatek's MT6885 SoC device tree source
  *
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -260,8 +261,9 @@ page_owner=on loop.max_part=7";
 
 		backlight {
 			label = "lcd-backlight";
-			max-brightness = <255>;
-			led-bits = <8>;
+			max-brightness = <2047>;
+			led-bits = <11>;
+			trans-bits = <11>;
 			default-state = "on";
 		};
 	};
@@ -527,7 +529,7 @@ page_owner=on loop.max_part=7";
 		reserve-memory-scp_share {
 			compatible = "mediatek,reserve-memory-scp_share";
 			no-map;
-			size = <0 0x00300000>; /*3 MB share mem size */
+			size = <0 0x00500000>; /*5 MB share mem size */
 			alignment = <0 0x1000000>;
 			alloc-ranges = <0 0x50000000 0 0x40000000>;
 		};
@@ -1386,7 +1388,7 @@ page_owner=on loop.max_part=7";
 			<GIC_SPI 449 IRQ_TYPE_LEVEL_HIGH>;
 		mboxes = <&adsp_common 2>, /*channel 2*/
 			<&adsp_common 3>; /*channel 3*/
-		feature_control_bits = <0x18f00f>;
+		feature_control_bits = <0x8F00F>;
 	};
 
 	mcucfg: mcucfg@0c530000 {
@@ -3062,6 +3064,25 @@ page_owner=on loop.max_part=7";
 		io-channel-names = "thermistor-ch2";
 	};
 
+	tboard_thermistor4: thermal-sensor4 {
+		compatible = "mediatek,mtboard-thermistor4";
+		io-channels = <&auxadc 4>;
+		io-channel-names = "thermistor-ch4";
+	};
+
+	tboard_thermistor5: thermal-sensor5 {
+	compatible = "mediatek,mtboard-thermistor5";
+	io-channels = <&auxadc 5>;
+	io-channel-names = "thermistor-ch5";
+	};
+
+	tboard_thermistor6: thermal-sensor6 {
+	compatible = "mediatek,mtboard-thermistor6";
+	io-channels = <&auxadc 3>;
+	io-channel-names = "thermistor-ch3";
+	};
+
+
 	mt6315_them_intr {
 		compatible = "mediatek,mt6315_therm_intr";
 		interrupts-extended =
@@ -3227,9 +3248,9 @@ page_owner=on loop.max_part=7";
 				"MDP_APMCU_GALS";
 	};
 
-	irq_nfc: irq_nfc {
-		compatible = "mediatek,irq_nfc-eint";
-	};
+//	irq_nfc: irq_nfc {
+//		compatible = "mediatek,irq_nfc-eint";
+//	};
 
 	mdp_mutex: mdp_mutex@1f001000 {
 		compatible = "mediatek,mdp_mutex";
@@ -4379,8 +4400,8 @@ page_owner=on loop.max_part=7";
 			<1>, /*MTK_DRM_OPT_ESD_CHECK_RECOVERY*/
 			<1>, /*MTK_DRM_OPT_ESD_CHECK_SWITCH*/
 			<1>, /*MTK_DRM_OPT_PRESENT_FENCE*/
-			<0>, /*MTK_DRM_OPT_RDMA_UNDERFLOW_AEE*/
-			<0>, /*MTK_DRM_OPT_DSI_UNDERRUN_AEE*/
+			<1>, /*MTK_DRM_OPT_RDMA_UNDERFLOW_AEE*/
+			<1>, /*MTK_DRM_OPT_DSI_UNDERRUN_AEE*/
 			<1>, /*MTK_DRM_OPT_HRT*/
 			<1>, /*MTK_DRM_OPT_HRT_MODE*/
 			<0>, /*MTK_DRM_OPT_DELAYED_TRIGGER*/
@@ -4389,7 +4410,7 @@ page_owner=on loop.max_part=7";
 			<1>, /*MTK_DRM_OPT_RPO*/
 			<0>, /*MTK_DRM_OPT_DUAL_PIPE*/
 			<0>, /*MTK_DRM_OPT_DC_BY_HRT*/
-			<1>, /*MTK_DRM_OPT_OVL_WCG*/
+			<0>, /*MTK_DRM_OPT_OVL_WCG*/
 			<0>, /*MTK_DRM_OPT_OVL_SBCH*/
 			<1>, /*MTK_DRM_OPT_COMMIT_NO_WAIT_VBLANK*/
 			<0>, /*MTK_DRM_OPT_MET*/
@@ -4401,10 +4422,10 @@ page_owner=on loop.max_part=7";
 			<0>, /*MTK_DRM_OPT_VDS_PATH_SWITCH*/
 			<0>, /*MTK_DRM_OPT_LAYER_REC*/
 			<1>, /*MTK_DRM_OPT_CLEAR_LAYER*/
-			<1>, /*MTK_DRM_OPT_LFR*/
-			<1>, /*MTK_DRM_OPT_SF_PF*/
+			<0>, /*MTK_DRM_OPT_LFR*/
+			<0>, /*MTK_DRM_OPT_SF_PF*/
 			<1>, /*MTK_DRM_OPT_DYN_MIPI_CHANGE*/
-			<0>; /*MTK_DRM_OPT_PRIM_DUAL_PIPE*/
+			<1>; /*MTK_DRM_OPT_PRIM_DUAL_PIPE*/
 	};
 
 	disp_mutex0: disp_mutex@14117000 {
@@ -5400,6 +5421,12 @@ page_owner=on loop.max_part=7";
 		mediatek,smi-id = <7>;
 	};
 
+	venc@17020000 {
+		compatible = "mediatek,venc";
+		reg = <0 0x17020000 0 0x10000>;
+		interrupts = <GIC_SPI 308 IRQ_TYPE_LEVEL_HIGH>;
+	};
+
 	jpgenc@17030000 {
 		compatible = "mediatek,jpgenc";
 		reg = <0 0x17030000 0 0x10000>;
@@ -5587,11 +5614,9 @@ page_owner=on loop.max_part=7";
 
 	vdec@16000000 {
 		compatible = "mediatek,mt6885-vcodec-dec";
-		reg = <0 0x1602f000 0 0x1000>,		/* VDEC_SYS */
+		reg = <0 0x1602F000 0 0x1000>,		/* VDEC_SYS */
 			 <0 0x16000000 0 0x1000>,		/* VDEC_BASE */
 			 <0 0x16020000 0 0x1000>,		/* VDEC_VLD */
-			 <0 0x16021000 0 0x1000>,		/* VDEC_MC */
-			 <0 0x16023000 0 0x1000>,		/* VDEC_MV */
 			 <0 0x16025000 0 0x4000>,		/* VDEC_MISC */
 			 <0 0x16010000 0 0x1000>, /* VDEC_LAT_MISC */
 			 <0 0x16011000 0 0x400>, /* VDEC_LAT_VLD */
@@ -6325,6 +6350,13 @@ page_owner=on loop.max_part=7";
 		clocks = <&imp_iic_wrap_c IMP_IIC_WRAP_C_AP_I2C11_CG_RO>;
 		clock-names = "main";
 		clock-div = <5>;
+		scl-gpio-id = <126>;
+		sda-gpio-id = <127>;
+		gpio_start = <0x11D10000>;
+		mem_len = <0x200>;
+		eh_cfg = <0x40>;
+		pu_cfg = <0xB0>;
+		rsel_cfg = <0xE0>;
 		aed = <0x1a>;
 		mediatek,fifo_only;
 	};
@@ -6354,7 +6386,7 @@ page_owner=on loop.max_part=7";
 	};
 
 	goodix_fp: fingerprint {
-		compatible = "mediatek,goodix-fp";
+		compatible = "mediatek,fpc1022_irq", "mediatek,goodix-fp";
 	};
 
 	accdet: accdet {
@@ -7354,6 +7386,7 @@ page_owner=on loop.max_part=7";
 	mt6359_snd: mt6359_snd {
 		compatible = "mediatek,mt6359-sound";
 		mediatek,pwrap-regmap = <&pwrap>;
+		always_pull_low_off = <1>;
 	};
 
 	sound: sound {
@@ -7373,25 +7406,26 @@ page_owner=on loop.max_part=7";
 	snd_audio_dsp: snd_audio_dsp {
 		compatible = "mediatek,snd_audio_dsp";
 		mtk_dsp_voip = <0x1f 0xffffffff 0xffffffff 0xffffffff 0x30000>;
-		mtk_dsp_primary = <0x5 0xffffffff 0xffffffff \
+		mtk_dsp_primary = <0x1 0xffffffff 0xffffffff \
 				   0xffffffff 0x30000>;
-		mtk_dsp_offload = <0x1d 0xffffffff 0xffffffff \
+		mtk_dsp_offload = <0x0 0xffffffff 0xffffffff \
 				   0xffffffff 0x400000>;
-		mtk_dsp_deep = <0x5 0xffffffff 0xffffffff 0xffffffff 0x30000>;
+		mtk_dsp_deep = <0x1 0xffffffff 0xffffffff 0xffffffff 0x30000>;
 		mtk_dsp_playback = <0x1 0x4 0xffffffff 0x14 0x30000>;
 		mtk_dsp_music = <0x1 0xffffffff 0xffffffff 0xffffffff 0x0>;
 		mtk_dsp_capture1 = <0x1 0xffffffff 0xd 0x13 0x20000>;
 		mtk_dsp_a2dp = <0x1 0xffffffff 0xffffffff 0xffffffff 0x40000>;
 		mtk_dsp_dataprovider = <0x0 0xffffffff 0xf 0xffffffff 0x30000>;
-		mtk_dsp_call_final = <0x5 0x0 0x10 0x14 0x18000>;
-		mtk_dsp_fast = <0x5 0xffffffff 0xffffffff 0xffffffff 0x5000>;
+		mtk_dsp_call_final = <0x0 0x0 0x10 0x14 0x18000>;
+		mtk_dsp_fast = <0x1 0xffffffff 0xffffffff 0xffffffff 0x30000>;
 		mtk_dsp_ktv = <0x1 0x8 0x12 0xffffffff 0x10000>;
-		mtk_dsp_capture_raw = <0x1 0xffffffff 0xffffffff 0xffffffff 0x20000>;
 		mtk_dsp_ver = <0x1>;
-		swdsp_smartpa_process_enable = <0x5>;
+		swdsp_smartpa_process_enable = <0x0>;
 		mtk_dsp_mem_afe = <0x1 0x40000>; /* always enable */
 	};
-
+	snd_scp_ultra: snd_scp_ultra {
+		compatible = "mediatek,snd_scp_ultra";
+	};
 	audio_sram@11212000 {
 		compatible = "mediatek,audio_sram";
 		reg = <0 0x11212000 0 0x18000>;
@@ -7604,6 +7638,12 @@ page_owner=on loop.max_part=7";
 	subpmic_pmu_eint: mt6360_pmu_eint {
 	};
 
+	cp_qc30: cp_qc30 {
+	};
+
+	usbpd_pm: usbpd_pm {
+	};
+
 	pmic_clock_buffer_ctrl: pmic_clock_buffer_ctrl {
 		compatible = "mediatek,pmic_clock_buffer";
 		mediatek,clkbuf-quantity = <7>;
@@ -7622,8 +7662,35 @@ page_owner=on loop.max_part=7";
 		compatible = "mediatek,touch";
 	};
 
+	gamekey: gamekey {
+		compatible = "xm,gamekey";
+	};
+
+	xiaomi_touch: xiaomi_touch {
+		compatible = "xiaomi-touch";
+		status = "ok";
+		touch,name = "xiaomi-touch";
+	};
+
 	tcpc_pd: tcpc_pd {
 	};
+
+	/* NFC start */
+	nfc:nfc {
+		compatible = "mediatek,nfc-gpio-v2";
+                reg = <0x08>;
+		gpio-rst = <10>;
+		gpio-rst-std = <&pio 10 0x0>;
+        	gpio-irq = <11>;
+		gpio-irq-std = <&pio 11 0x0>;
+	};
+
+//	irq_nfc: irq_nfc {
+//		compatible = "mediatek,irq_nfc-eint";
+//                reg = <0x08>;
+//	};
+
+	/* NFC end */
 
 	smart_pa: smart_pa {
 	};
@@ -7788,6 +7855,12 @@ page_owner=on loop.max_part=7";
 	};
 };
 
+//&irq_nfc {
+//      interrupt-parent = <&pio>;
+//      interrupts = <11 IRQ_TYPE_LEVEL_HIGH 11 0>;
+//      status = "okay";
+//};
+
 &spmi_bus {
 #ifdef CONFIG_FPGA_EARLY_PORTING
 	grpid = <8>;
@@ -7860,7 +7933,53 @@ page_owner=on loop.max_part=7";
 		reg = <0x34>;
 		status = "okay";
 	};
+
 };
+/* ST54H SPI configuration */
+&spi5 {
+    st54spi@0 {
+            compatible = "st,st54spi";
+            reg = <0>;
+            spi-max-frequency = <5000000> ;
+            /* gpio used as SE_PWR_REQ or SE_nRESET */
+            gpio-power_nreset = <13>;
+            gpio-power_nreset-std = <&pio 13 0x0>;
+            /* Power management mode: none, ST54H (default), ST54J */
+            power_mode = "ST54H";
+            pinctrl-names = "pinctrl_state_mode_idle", "pinctrl_state_mode_spi";
+            pinctrl-0 = <&pinctrl_state_mode_idle>;
+            pinctrl-1 = <&pinctrl_state_mode_spi>;
+            status = "okay";
+        };
+};
+
+&pio {
+        pinctrl_state_mode_idle: pinctrl_state_mode_idle {
+        pins_cmd0_dat {
+            pinmux = <PINMUX_GPIO37__FUNC_GPIO37>;
+            input-enable;
+            bias-pull-down;
+            };
+        pins_cmd1_dat {
+            pinmux = <PINMUX_GPIO39__FUNC_GPIO39>;
+            input-enable;
+            bias-pull-down;
+            };
+
+        };
+        pinctrl_state_mode_spi: pinctrl_state_mode_spi {
+            pins_cmd0_dat {
+                pinmux = <PINMUX_GPIO37__FUNC_SPI5_A_CSB>;
+                bias-disable;
+            };
+            pins_cmd1_dat {
+                pinmux = <PINMUX_GPIO39__FUNC_SPI5_A_MO>;
+                bias-disable;
+            };
+        };
+};
+
+/* ST54H SPI configuration -- end */
 
 &pio {
 	aud_clk_mosi_off: aud_clk_mosi_off {
@@ -8104,6 +8223,45 @@ page_owner=on loop.max_part=7";
 	aud_gpio_i2s9_off: aud_gpio_i2s9_off {
 	};
 	aud_gpio_i2s9_on: aud_gpio_i2s9_on {
+	};
+
+	nfc_default: nfc_default {
+	};
+	nfc_int_active: nfc_int_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO11__FUNC_GPIO11>;
+			slew-rate = <0>;
+			drive-strength = <MTK_DRIVE_2mA>;
+			bias-pull-up;
+		};
+	};
+
+	nfc_int_suspend: nfc_int_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO11__FUNC_GPIO11>;
+			slew-rate = <0>;
+			drive-strength = <MTK_DRIVE_2mA>;
+			bias-pull-up;
+		};
+	};
+
+	nfc_enable_active: nfc_enable_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO10__FUNC_GPIO10>;
+			slew-rate = <1>;
+			output-high;
+			drive-strength = <MTK_DRIVE_2mA>;
+			bias-pull-up=<MTK_PUPD_SET_R1R0_11>;
+		};
+	};
+
+	nfc_enable_suspend: nfc_enable_suspend {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO10__FUNC_GPIO10>;
+			slew-rate = <1>;
+			drive-strength = <MTK_DRIVE_2mA>;
+			bias-disable;
+		};
 	};
 };
 

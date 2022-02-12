@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -208,7 +209,7 @@ static int disp_ccorr_color_matrix_to_dispsys(struct drm_device *dev)
 
 	// All Support 3*4 matrix on drm architecture
 	ret = mtk_drm_helper_set_opt_by_name(private->helper_opt,
-		"MTK_DRM_OPT_PQ_34_COLOR_MATRIX", 1);
+		"MTK_DRM_OPT_PQ_34_COLOR_MATRIX", 0);
 
 	return ret;
 }
@@ -857,8 +858,7 @@ int mtk_drm_ioctl_support_color_matrix(struct drm_device *dev, void *data,
 	color_transform = data;
 
 #if defined(CONFIG_MACH_MT6885) || defined(CONFIG_MACH_MT6873) \
-	|| defined(CONFIG_MACH_MT6893) || defined(CONFIG_MACH_MT6853) \
-	|| defined(CONFIG_MACH_MT6833)
+	|| defined(CONFIG_MACH_MT6833) || defined(CONFIG_MACH_MT6853)
 	// Support matrix:
 	// AOSP is 4x3 matrix. Offset is located at 4th row (not zero)
 

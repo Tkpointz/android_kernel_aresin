@@ -7606,6 +7606,8 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 			if (walt_cpu_high_irqload(i))
 				continue;
 
+			if(cpu_rq(i)->rt.rt_nr_running)
+				continue;
 			/*
 			 * p's blocked utilization is still accounted for on prev_cpu
 			 * so prev_cpu will receive a negative bias due to the double
@@ -10041,7 +10043,7 @@ static inline void update_sg_lb_stats(struct lb_env *env,
 		}
 	}
 	/* Isolated CPU has no weight */
-	if (!group->group_weight || !group->sgc->capacity) {
+	if (!group->group_weight) {
 		sgs->group_capacity = 0;
 		sgs->avg_load = 0;
 		sgs->group_no_capacity = 1;

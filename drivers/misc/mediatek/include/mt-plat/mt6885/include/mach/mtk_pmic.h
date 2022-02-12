@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -18,6 +19,8 @@
 
 #define LOW_POWER_LIMIT_LEVEL_1 15
 
+#define DISABLE_BATTERY_PERCENT_PROTECT
+
 #define PT_DLPT_BRINGUP 0
 
 #if defined(CONFIG_FPGA_EARLY_PORTING) || PT_DLPT_BRINGUP
@@ -30,7 +33,7 @@
 #define DISABLE_BATTERY_OC_PROTECT
 
 /*Define for disable battery 15% protect*/
-#define DISABLE_BATTERY_PERCENT_PROTECT
+/*#define DISABLE_BATTERY_PERCENT_PROTECT*/
 
 /*Define for DLPT*/
 #define DISABLE_DLPT_FEATURE

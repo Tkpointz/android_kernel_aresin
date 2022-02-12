@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -210,6 +211,10 @@ int ged_bridge_query_dvfs_freq_pred(
 	struct GED_BRIDGE_IN_QUERY_DVFS_FREQ_PRED *QueryDVFSFreqPredIn,
 	struct GED_BRIDGE_OUT_QUERY_DVFS_FREQ_PRED *QueryDVFSFreqPredOut)
 {
+	/* GiFT hint PID status to GED */
+	if (QueryDVFSFreqPredIn->pid) {
+		ged_kpi_set_gift_target_pid(QueryDVFSFreqPredIn->pid);
+	}
 	/* GiFT hint status to GED */
 	if (QueryDVFSFreqPredIn->hint) {
 		QueryDVFSFreqPredOut->eError =
@@ -220,7 +225,8 @@ int ged_bridge_query_dvfs_freq_pred(
 		QueryDVFSFreqPredOut->eError = ged_kpi_query_dvfs_freq_pred(
 			&QueryDVFSFreqPredOut->gpu_freq_cur,
 			&QueryDVFSFreqPredOut->gpu_freq_max,
-			&QueryDVFSFreqPredOut->gpu_freq_dvfs_pred);
+			&QueryDVFSFreqPredOut->gpu_freq_dvfs_pred,
+			&QueryDVFSFreqPredOut->target_fps);
 	}
 	return 0;
 }

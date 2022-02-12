@@ -10,6 +10,7 @@
  * strictly code just for the 'struct bus_type'.
  *
  * Copyright (c) 2002-5 Patrick Mochel
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Copyright (c) 2002-3 Open Source Development Labs
  * Copyright (c) 2007-2009 Greg Kroah-Hartman <gregkh@suse.de>
  * Copyright (c) 2007-2009 Novell Inc.
@@ -386,7 +387,8 @@ static int really_probe(struct device *dev, struct device_driver *drv)
 		 drv->bus->name, __func__, drv->name, dev_name(dev));
 	if (!list_empty(&dev->devres_head)) {
 		dev_crit(dev, "Resources present before probing\n");
-		return -EBUSY;
+		ret = -EBUSY;
+        goto done;
 	}
 
 re_probe:

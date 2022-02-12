@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -19,6 +20,7 @@
 #define MAX_EEPROM_SIZE_16K 0x4000
 
 struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
+#if 0
 	/*Below is commom sensor */
 	{IMX586_SENSOR_ID, 0xA0, Common_read_region, MAX_EEPROM_SIZE_16K,
 		BL24SA64_write_region},
@@ -41,6 +43,11 @@ struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
 		DW9763_write_region},
 	{IMX481_SENSOR_ID, 0xA4, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_8K,
 		BL24SA64_write_region},
+#endif
+	{OV64B40SUNNY_SENSOR_ID, 0xA2, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
+	{OV16A1QOFILM_SENSOR_ID, 0xA2, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
+	{GC02M1SUNNY_SENSOR_ID, 0xA4, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
+	{IMX355SUNNY_SENSOR_ID, 0xA0, Common_read_region, DEFAULT_MAX_EEPROM_SIZE_16K},
 	/*  ADD before this line */
 	{0, 0, 0}       /*end of list */
 };

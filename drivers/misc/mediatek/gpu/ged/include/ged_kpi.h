@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -58,14 +59,15 @@ void ged_kpi_set_game_hint(int mode);
 unsigned int ged_kpi_enabled(void);
 void ged_kpi_set_target_FPS(u64 ulID, int target_FPS);
 void ged_kpi_set_target_FPS_margin(u64 ulID, int target_FPS,
-	int target_FPS_margin, int cpu_time);
+	int target_FPS_margin, int eara_tfps_diff, int cpu_time);
 #ifdef GED_ENABLE_TIMER_BASED_DVFS_MARGIN
 GED_ERROR ged_kpi_timer_based_pick_riskyBQ(int *pT_gpu_real, int *pT_gpu_pipe,
 	int *pT_gpu_target, unsigned long long *pullWnd);
 #endif
 GED_ERROR ged_kpi_query_dvfs_freq_pred(int *gpu_freq_cur
-	, int *gpu_freq_max, int *gpu_freq_pred);
+	, int *gpu_freq_max, int *gpu_freq_pred, int *target_fps);
 GED_ERROR ged_kpi_set_gift_status(int mode);
+GED_ERROR ged_kpi_set_gift_target_pid(int pid);
 
 extern int linear_real_boost(int linear_boost);
 #ifdef GED_KPI_CPU_INFO

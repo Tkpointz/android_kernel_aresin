@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -176,9 +177,6 @@ struct mtk_drm_private {
 	int vds_path_switch_done;
 	int vds_path_enable;
 
-	bool need_cwb_path_disconnect;
-	bool cwb_is_preempted;
-
 	/* Due to 2nd display share 1 secure gce client, need store here */
 	struct cmdq_client *ext_sec_client;
 };
@@ -243,6 +241,9 @@ extern struct platform_driver mtk_dp_tx_driver;
 extern struct platform_driver mtk_dp_intf_driver;
 #endif
 
+extern atomic_t resume_pending;
+extern wait_queue_head_t resume_wait_q;
+
 void mtk_atomic_state_put_queue(struct drm_atomic_state *state);
 void mtk_drm_fence_update(unsigned int fence_idx, unsigned int index);
 void drm_trigger_repaint(enum DRM_REPAINT_TYPE type,
@@ -264,5 +265,5 @@ int lcm_fps_ctx_init(struct drm_crtc *crtc);
 int lcm_fps_ctx_reset(struct drm_crtc *crtc);
 int lcm_fps_ctx_update(unsigned long long cur_ns,
 		unsigned int crtc_id, unsigned int mode);
-void disp_drm_debug(const char *opt);
+
 #endif /* MTK_DRM_DRV_H */

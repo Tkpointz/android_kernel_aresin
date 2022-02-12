@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #ifndef __DEVAPC_MT6885_H__
@@ -11,7 +12,7 @@
  ******************************************************************************/
 /* dbg status default setting */
 #define PLAT_DBG_UT_DEFAULT		false
-#define PLAT_DBG_KE_DEFAULT		true
+#define PLAT_DBG_KE_DEFAULT		false
 #define PLAT_DBG_AEE_DEFAULT		true
 #define PLAT_DBG_WARN_DEFAULT		true
 #define PLAT_DBG_DAPC_DEFAULT		false

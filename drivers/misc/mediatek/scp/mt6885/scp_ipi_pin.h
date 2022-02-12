@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -73,6 +74,14 @@ enum {
 	/* the following will use mbox4 */
 	IPI_OUT_SCP_MPOOL_1	   = 28,
 	IPI_IN_SCP_MPOOL_1	   = 29,
+
+	/* ultrasound will use core 0 and mbox 1*/
+	IPI_OUT_AUDIO_ULTRA_SND_0 =  30,
+	IPI_IN_AUDIO_ULTRA_SND_ACK_0 =  31,
+	IPI_IN_AUDIO_ULTRA_SND_0  =  32,
+	/* the following will use mbox0 */
+	IPI_OUT_ALS_CALI          = 33,
+	IPI_IN_ALS_CALI           = 34,
 	SCP_IPI_COUNT
 };
 

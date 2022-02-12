@@ -64,6 +64,15 @@ config REGULATOR_88PM800
 	  It's suitable to support PXA988 chips to control VCC_MAIN and
 	  various voltages.
 
+config REGULATOR_WL2866D
+	bool "WILL Semi Technologies Inc. WL2866D regulator driver"
+	depends on I2C_MTK
+	help
+	  Say Y here to support the WL2866D PMIC chip.
+	  This driver controls WL2866D PMIC chip and the voltage
+	  regulators found in WILL Semi Technologies Inc. WL2866D
+	  PMIC.
+
 config REGULATOR_88PM8607
 	tristate "Marvell 88PM8607 Power regulators"
 	depends on MFD_88PM860X=y

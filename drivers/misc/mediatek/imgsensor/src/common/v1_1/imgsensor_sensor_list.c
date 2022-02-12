@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -24,6 +25,18 @@
  */
 struct IMGSENSOR_SENSOR_LIST
 	gimgsensor_sensor_list[MAX_NUM_OF_SUPPORT_SENSOR] = {
+#if defined(IMX355SUNNY_MIPI_RAW)
+{IMX355SUNNY_SENSOR_ID, SENSOR_DRVNAME_IMX355SUNNY_MIPI_RAW, IMX355SUNNY_MIPI_RAW_SensorInit},
+#endif
+#if defined(OV64B40SUNNY_MIPI_RAW)
+{OV64B40SUNNY_SENSOR_ID, SENSOR_DRVNAME_OV64B40SUNNY_MIPI_RAW, OV64B40SUNNY_MIPI_RAW_SensorInit},
+#endif
+#if defined(OV16A1QOFILM_MIPI_RAW)
+{OV16A1QOFILM_SENSOR_ID, SENSOR_DRVNAME_OV16A1QOFILM_MIPI_RAW, OV16A1QOFILM_MIPI_RAW_SensorInit},
+#endif
+#if defined(GC02M1SUNNY_MIPI_RAW)
+{GC02M1SUNNY_SENSOR_ID, SENSOR_DRVNAME_GC02M1SUNNY_MIPI_RAW, GC02M1SUNNY_MIPI_RAW_SensorInit},
+#endif
 #if defined(S5KJD1_MIPI_RAW)
 {S5KJD1_SENSOR_ID, SENSOR_DRVNAME_S5KJD1_MIPI_RAW,
 	S5KJD1_MIPI_RAW_SensorInit},

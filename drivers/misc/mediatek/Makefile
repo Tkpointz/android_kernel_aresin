@@ -174,3 +174,9 @@ obj-$(CONFIG_MTK_MDDP_SUPPORT) += mddp/
 obj-$(CONFIG_MTK_USB2JTAG_SUPPORT) += usb2jtag/
 obj-y += subpmic/
 obj-$(CONFIG_MTK_OTP) += otp/
+obj-$(CONFIG_MTK_ULTRASND_PROXIMITY) += elliptic/
+
+ifeq ($(CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES),"mediatek/ares")
+subdir-ccflags-y += -D_XIAOMI_ARES_
+endif
+

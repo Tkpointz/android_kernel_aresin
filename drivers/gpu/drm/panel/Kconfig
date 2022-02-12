@@ -637,3 +637,18 @@ config DRM_PANEL_SAMSUNG_S68FC01_VDO_AOD
 	  fhdp vdo aod panel. The panel has a 1080x2340 resolution
 	  and uses 24-bits RGB per pixel. It provides a MIPI DSI
 	  interface to host.
+
+config DRM_PANEL_K10_42_02_0A_DSC_CMD
+	tristate "Novatek 37701 DSI cmd mode DSC panel"
+	depends on OF
+	depends on DRM_MIPI_DSI
+	depends on BACKLIGHT_CLASS_DEVICE
+	help
+	  Say Y here if you want to enable support for Novatek 37701
+	  FHD+ cmd mode panel. The panel has a 1080x2400 resolution and uses
+	  24-bits RGB per pixel. It provides a MIPI DSI interface
+	  to host.
+
+
+
+

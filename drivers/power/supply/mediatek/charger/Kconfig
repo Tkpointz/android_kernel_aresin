@@ -196,6 +196,20 @@ config CHARGER_BQ25601
 	  and config MTK_SWCHR_SUPPORT
 	  Set to Yes if BQ25601 is used.
 
+config XMUSB350_DET_CHG
+	tristate "XMUSB350 power supply framework based driver"
+	depends on I2C
+	help
+	  Say Y to include support for XMUSB350 Charge detect driver.
+	  XMUSB350 can identify bc12 \ QC2.0 \ QC3.0 \ QC3+ protocol.
+
+config CONN_TEMP_NTC
+	int "USB Connector port NTC value"
+	default 10
+	help
+	  Select Conn port NTC vaule, default 10k with 3.9k Rp
+	  100: 100k ohm with 24.9k Rp
+
 config LOAD_SWITCH_RT9750
 	bool "Load Switch Driver for Richtek RT9750"
 	depends on MTK_CHARGER
@@ -204,3 +218,10 @@ config LOAD_SWITCH_RT9750
 	  It is a load switch,
 	  which is good for direct charge.
 	  It depends on config MTK_CHARGER.
+
+config MTBF_SUPPORT
+	bool "Support MTBF test"
+	help
+	  Say Y to enable
+	  Say N to disable
+

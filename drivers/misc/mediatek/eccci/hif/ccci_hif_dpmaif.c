@@ -2576,24 +2576,23 @@ static void set_drb_msg(unsigned char q_num, unsigned short cur_idx,
 #ifdef DPMAIF_DEBUG_LOG
 	unsigned int *temp;
 #endif
-	struct dpmaif_drb_msg msg;
 
-	msg.dtyp = DES_DTYP_MSG;
-	msg.c_bit = 1;
-	msg.packet_len = pkt_len;
-	msg.count_l = count_l;
-	msg.channel_id = channel_id;
+	drb->dtyp = DES_DTYP_MSG;
+	drb->c_bit = 1;
+	drb->packet_len = pkt_len;
+	drb->count_l = count_l;
+	drb->channel_id = channel_id;
 	switch (network_type) {
 	/*case htons(ETH_P_IP):
-	 * msg.network_type = 4;
+	 * drb->network_type = 4;
 	 * break;
 	 *
 	 * case htons(ETH_P_IPV6):
-	 * msg.network_type = 6;
+	 * drb->network_type = 6;
 	 * break;
 	 */
 	default:
-		msg.network_type = 0;
+		drb->network_type = 0;
 		break;
 	}
 #ifdef DPMAIF_DEBUG_LOG
@@ -2602,7 +2601,7 @@ static void set_drb_msg(unsigned char q_num, unsigned short cur_idx,
 		"txq(%d)0x%p: drb message(%d): 0x%x, 0x%x\n",
 		q_num, drb, cur_idx, temp[0], temp[1]);
 #endif
-	memcpy(drb, &msg, sizeof(msg));
+
 }
 
 static void set_drb_payload(unsigned char q_num, unsigned short cur_idx,
@@ -2614,23 +2613,22 @@ static void set_drb_payload(unsigned char q_num, unsigned short cur_idx,
 #ifdef DPMAIF_DEBUG_LOG
 	unsigned int *temp;
 #endif
-	struct dpmaif_drb_pd payload;
 
-	payload.dtyp = DES_DTYP_PD;
+	drb->dtyp = DES_DTYP_PD;
 	if (last_one)
-		payload.c_bit = 0;
+		drb->c_bit = 0;
 	else
-		payload.c_bit = 1;
-	payload.data_len = pkt_size;
-	payload.p_data_addr = data_addr&0xFFFFFFFF;
-	payload.data_addr_ext = (data_addr>>32)&0xFF;
+		drb->c_bit = 1;
+	drb->data_len = pkt_size;
+	drb->p_data_addr = data_addr&0xFFFFFFFF;
+	drb->data_addr_ext = (data_addr>>32)&0xFF;
 #ifdef DPMAIF_DEBUG_LOG
 	temp = (unsigned int *)drb;
 	CCCI_HISTORY_LOG(dpmaif_ctrl->md_id, TAG,
 		"txq(%d)0x%p: drb payload(%d): 0x%x, 0x%x\n",
 		q_num, drb, cur_idx, temp[0], temp[1]);
 #endif
-	memcpy(drb, &payload, sizeof(payload));
+
 }
 
 static void record_drb_skb(unsigned char q_num, unsigned short cur_idx,

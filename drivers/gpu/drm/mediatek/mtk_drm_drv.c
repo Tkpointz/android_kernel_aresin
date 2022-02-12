@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Author: YT SHEN <yt.shen@mediatek.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -64,11 +65,16 @@
 #include "include/pmic_api_buck.h"
 #endif
 
+#include "mi_disp/mi_disp_feature.h"
+#include "mi_disp/mi_disp_log.h"
 #define DRIVER_NAME "mediatek"
 #define DRIVER_DESC "Mediatek SoC DRM"
 #define DRIVER_DATE "20150513"
 #define DRIVER_MAJOR 1
 #define DRIVER_MINOR 0
+
+atomic_t resume_pending;
+wait_queue_head_t resume_wait_q;
 
 static atomic_t top_isr_ref; /* irq power status protection */
 static atomic_t top_clk_ref; /* top clk status protection*/
@@ -85,58 +91,6 @@ long long mutex_nested_time_period;
 const char *mutex_nested_locker;
 
 struct lcm_fps_ctx_t lcm_fps_ctx[MAX_CRTC];
-
-static int manual_shift;
-static bool no_shift;
-
-int mtk_atoi(const char *str)
-{
-	int len = strlen(str);
-	int num = 0, i = 0;
-	int sign = (str[0] == '-') ? -1 : 1;
-
-	if (sign == -1)
-		i = 1;
-	else
-		i = 0;
-	for (; i < len; i++) {
-		if (str[i] < '0' || str[i] > '9')
-			break;
-		num *= 10;
-		num += (int)(str[i] - '0');
-	}
-
-	pr_notice("[debug] num=%d sign=%d\n",
-			num, sign);
-
-	return num * sign;
-}
-
-void disp_drm_debug(const char *opt)
-{
-	pr_notice("[debug] opt=%s\n", opt);
-	if (strncmp(opt, "shift:", 6) == 0) {
-
-		int len = strlen(opt);
-		char buf[100];
-
-		strcpy(buf, opt + 6);
-		buf[len - 6] = '\0';
-
-		pr_notice("[debug] buf=%s\n",
-			buf);
-
-		manual_shift = mtk_atoi(buf);
-
-		pr_notice("[debug] manual_shift=%d\n",
-			manual_shift);
-	} else if (strncmp(opt, "no_shift:", 9) == 0) {
-		no_shift = strncmp(opt + 9, "1", 1) == 0;
-		pr_notice("[debug] no_shift=%d\n",
-			no_shift);
-	}
-}
-
 
 static inline struct mtk_atomic_state *to_mtk_state(struct drm_atomic_state *s)
 {
@@ -268,15 +222,13 @@ static void mtk_atomic_rsz_calc_dual_params(
 	else
 		is_dual = true;
 
-	DDPINFO("%s :loss:%d,idx:%d,width:%d,src_w:%d,dst_w:%d,src_x:%d\n", __func__,
-	       tile_loss, tile_idx, width, src_roi->width, dst_roi->width, src_roi->x);
 	step = (UNIT * (src_roi->width - 1) + (dst_roi->width - 2)) /
-			(dst_roi->width - 1); /* for ceil */
+			(dst_roi->width - 1);
+
 	offset[0] = (step * (dst_roi->width - 1) -
 		UNIT * (src_roi->width - 1)) / 2;
 	init_phase = UNIT - offset[0];
 	sub_offset[0] = -offset[0];
-
 	if (sub_offset[0] < 0) {
 		int_offset[0]--;
 		sub_offset[0] = UNIT + sub_offset[0];
@@ -285,10 +237,8 @@ static void mtk_atomic_rsz_calc_dual_params(
 		int_offset[0]++;
 		sub_offset[0] = sub_offset[0] - UNIT;
 	}
-
 	if (is_dual) {
 		/*left side*/
-		/*right bound - left bound + tile loss*/
 		tile_in_len[0] = (((width / 2) * src_roi->width * 10) /
 			dst_roi->width + 5) / 10 - src_roi->x + tile_loss;
 		tile_out_len[0] = width / 2 - dst_roi->x;
@@ -308,7 +258,7 @@ static void mtk_atomic_rsz_calc_dual_params(
 	param[tile_idx].sub_offset = (u32)(sub_offset[0] & 0x1fffff);
 	param[tile_idx].in_len = tile_in_len[0];
 	param[tile_idx].out_len = tile_out_len[0];
-	DDPINFO("%s,%d :%s:step:%u,offset:%u.%u,len:%u->%u,out_x:%u\n", __func__, __LINE__,
+	DDPINFO("%s:%s:step:%u,offset:%u.%u,len:%u->%u,out_x:%u\n", __func__,
 	       is_dual ? "dual" : "single",
 	       param[0].step,
 	       param[0].int_offset,
@@ -321,29 +271,22 @@ static void mtk_atomic_rsz_calc_dual_params(
 		return;
 
 	/* right half */
-	tile_out_len[1] = dst_roi->width - tile_out_len[0];
-	tile_in_len[1] = ((tile_out_len[1] * src_roi->width * 10) /
-		dst_roi->width + 5) / 10 + tile_loss + (offset[0] ? 1 : 0);
-
-	offset[1] = (-offset[0]) + (tile_out_len[0] * step) -
-			(src_roi->width - tile_in_len[1]) * UNIT + manual_shift;
-	/*
-	 * offset[1] = (init_phase + dst_roi->width / 2 * step) -
-	 *	(src_roi->width / 2 - tile_loss - (offset[0] ? 1 : 0) + 1) * UNIT +
-	 *	UNIT + manual_shift;
-	 */
-	if (no_shift)
-		offset[1] = 0;
-	DDPINFO("%s,in_ph:%d,man_sh:%d,off[1]:%d\n", __func__, init_phase, manual_shift, offset[1]);
+	offset[1] =
+		(init_phase + dst_roi->width / 2 * step) -
+		(src_roi->width / 2 - tile_loss - (offset[0] ? 1 : 0) + 1) * UNIT +
+		UNIT;
 	int_offset[1] = offset[1] / UNIT;
 	sub_offset[1] = offset[1] - UNIT * int_offset[1];
-	/*
+	tile_out_len[1] = dst_roi->x + dst_roi->width - width / 2;
+	tile_in_len[1] = ((tile_out_len[1] * src_roi->width * 10) /
+			dst_roi->width + 5) / 10 + tile_loss + (offset[0] ? 1 : 0);
+
 	if (int_offset[1] & 0x1) {
 		int_offset[1]++;
 		tile_in_len[1]++;
-		DDPINFO("%s :right tile int_offset: make odd to even\n", __func__);
+		DDPMSG("right tile int_offset: make odd to even\n");
 	}
-	*/
+
 	param[1].step = step;
 	param[1].out_x = 0;
 	param[1].int_offset = (u32)(int_offset[1] & 0xffff);
@@ -351,7 +294,7 @@ static void mtk_atomic_rsz_calc_dual_params(
 	param[1].in_len = tile_in_len[1];
 	param[1].out_len = tile_out_len[1];
 
-	DDPINFO("%s,%d :%s:step:%u,offset:%u.%u,len:%u->%u,out_x:%u\n", __func__, __LINE__,
+	DDPINFO("%s:%s:step:%u,offset:%u.%u,len:%u->%u,out_x:%u\n", __func__,
 	       is_dual ? "dual" : "single",
 	       param[1].step,
 	       param[1].int_offset,
@@ -581,7 +524,6 @@ static void mtk_atomic_force_doze_switch(struct drm_device *dev,
 	funcs = encoder->helper_private;
 
 	panel_funcs = mtk_drm_get_lcm_ext_funcs(crtc);
-	mtk_drm_idlemgr_kick(__func__, crtc, false);
 	if (panel_funcs && panel_funcs->doze_get_mode_flags) {
 		/* blocking flush before stop trigger loop */
 		mtk_crtc_pkt_create(&handle, &mtk_crtc->base,
@@ -656,7 +598,7 @@ static void mtk_atomic_doze_update_dsi_state(struct drm_device *dev,
 	struct mtk_crtc_state *mtk_state;
 
 	mtk_state = to_mtk_crtc_state(crtc->state);
-	DDPINFO("%s doze_changed:%d, needs_modeset:%d, doze_active:%d\n",
+	pr_info("%s doze_changed:%d, needs_modeset:%d, doze_active:%d\n",
 		__func__, mtk_state->doze_changed,
 		drm_atomic_crtc_needs_modeset(crtc->state),
 		mtk_state->prop_val[CRTC_PROP_DOZE_ACTIVE]);
@@ -1198,15 +1140,6 @@ static const struct mtk_addon_module_data addon_rsz_data_v3[] = {
 	{DISP_RSZ_v3, ADDON_BETWEEN, DDP_COMPONENT_OVL1_2L},
 };
 
-static const struct mtk_addon_module_data addon_wdma0_data[] = {
-	{DISP_WDMA0, ADDON_AFTER, DDP_COMPONENT_DITHER0},
-};
-
-static const struct mtk_addon_module_data addon_wdma1_data[] = {
-	{DISP_WDMA1, ADDON_AFTER, DDP_COMPONENT_DITHER1},
-};
-
-
 static const struct mtk_addon_scenario_data mt6779_addon_main[ADDON_SCN_NR] = {
 		[NONE] = {
 
@@ -1253,11 +1186,6 @@ static const struct mtk_addon_scenario_data mt6885_addon_main[ADDON_SCN_NR] = {
 				.module_data = addon_rsz_data_v2,
 				.hrt_type = HRT_TB_TYPE_GENERAL1,
 			},
-		[WDMA_WRITE_BACK] = {
-				.module_num = ARRAY_SIZE(addon_wdma0_data),
-				.module_data = addon_wdma0_data,
-				.hrt_type = HRT_TB_TYPE_GENERAL1,
-			},
 };
 
 static const struct mtk_addon_scenario_data mt6885_addon_main_dual[ADDON_SCN_NR] = {
@@ -1273,11 +1201,6 @@ static const struct mtk_addon_scenario_data mt6885_addon_main_dual[ADDON_SCN_NR]
 		[TWO_SCALING] = {
 				.module_num = ARRAY_SIZE(addon_rsz_data_v3),
 				.module_data = addon_rsz_data_v3,
-				.hrt_type = HRT_TB_TYPE_GENERAL1,
-			},
-		[WDMA_WRITE_BACK] = {
-				.module_num = ARRAY_SIZE(addon_wdma1_data),
-				.module_data = addon_wdma1_data,
 				.hrt_type = HRT_TB_TYPE_GENERAL1,
 			},
 };
@@ -2237,7 +2160,7 @@ int mtk_drm_get_display_caps_ioctl(struct drm_device *dev, void *data,
 	caps_info->lcm_degree = 180;
 #endif
 
-	caps_info->lcm_color_mode = MTK_DRM_COLOR_MODE_NATIVE;
+	caps_info->lcm_color_mode = MTK_DRM_COLOR_MODE_DISPLAY_P3;
 	if (mtk_drm_helper_get_opt(private->helper_opt, MTK_DRM_OPT_OVL_WCG)) {
 		if (params)
 			caps_info->lcm_color_mode = params->lcm_color_mode;
@@ -3354,6 +3277,20 @@ static int mtk_drm_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_PM_SLEEP
+
+static int mtk_drm_sys_prepare(struct device *dev)
+{
+	atomic_inc(&resume_pending);
+	return 0;
+}
+
+static void mtk_drm_sys_complete(struct device *dev)
+{
+	atomic_set(&resume_pending, 0);
+	wake_up_all(&resume_wait_q);
+	return;
+}
+
 static int mtk_drm_sys_suspend(struct device *dev)
 {
 	struct mtk_drm_private *private = dev_get_drvdata(dev);
@@ -3396,8 +3333,12 @@ static int mtk_drm_sys_resume(struct device *dev)
 }
 #endif
 
-static SIMPLE_DEV_PM_OPS(mtk_drm_pm_ops, mtk_drm_sys_suspend,
-			 mtk_drm_sys_resume);
+static const struct dev_pm_ops mtk_drm_pm_ops = {
+	.prepare = mtk_drm_sys_prepare,
+	.complete = mtk_drm_sys_complete,
+	.suspend = mtk_drm_sys_suspend,
+	.resume = mtk_drm_sys_resume,
+};
 
 static const struct of_device_id mtk_drm_of_ids[] = {
 	{.compatible = "mediatek,mt2701-mmsys",
@@ -3465,7 +3406,8 @@ static int __init mtk_drm_init(void)
 {
 	int ret;
 	int i;
-
+	mi_disp_feature_init();
+	mi_disp_log_init();
 	DDPINFO("%s+\n", __func__);
 	for (i = 0; i < ARRAY_SIZE(mtk_drm_drivers); i++) {
 		ret = platform_driver_register(mtk_drm_drivers[i]);

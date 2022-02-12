@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -190,8 +191,6 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 
 		if ((pd_sink_voltage_new != pd_sink_voltage_old) ||
 		    (pd_sink_current_new != pd_sink_current_old)) {
-			pd_sink_voltage_old = pd_sink_voltage_new;
-			pd_sink_current_old = pd_sink_current_new;
 			if ((!pd_sink_voltage_old || !pd_sink_current_old) &&
 			    (pd_sink_voltage_new && pd_sink_current_new)) {
 #if CONFIG_MTK_GAUGE_VERSION == 30
@@ -211,6 +210,8 @@ static int pd_tcp_notifier_call(struct notifier_block *nb,
 				mtk_chr_pd_enable_power_path(0);
 #endif
 			}
+			pd_sink_voltage_old = pd_sink_voltage_new;
+			pd_sink_current_old = pd_sink_current_new;
 		}
 		mutex_unlock(&param_lock);
 		break;

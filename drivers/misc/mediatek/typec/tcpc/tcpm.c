@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * Power Delivery Managert Driver
  *
@@ -358,6 +359,14 @@ uint8_t tcpm_inquire_pd_power_role(
 	struct pd_port *pd_port = &tcpc_dev->pd_port;
 
 	return pd_port->power_role;
+}
+
+uint8_t tcpm_inquire_pd_state_curr(
+	struct tcpc_device *tcpc_dev)
+{
+	struct pd_port *pd_port = &tcpc_dev->pd_port;
+
+	return pd_port->pe_state_curr;
 }
 
 uint8_t tcpm_inquire_pd_vconn_role(

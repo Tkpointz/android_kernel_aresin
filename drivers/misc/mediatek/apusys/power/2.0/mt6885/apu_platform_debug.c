@@ -52,11 +52,7 @@ void apu_power_dump_opp_table(struct seq_file *s)
 int apu_power_dump_curr_status(struct seq_file *s, int oneline_str)
 {
 	struct apu_power_info info = {0};
-	u64 time;
-	ulong  rem_nsec;
 
-	time = sched_clock();
-	rem_nsec = do_div(time, 1000000000);
 	info.id = 0;
 	info.type = 1;
 
@@ -75,8 +71,7 @@ int apu_power_dump_curr_status(struct seq_file *s, int oneline_str)
 	}
 
 	seq_printf(s,
-		   "[%5lu.%06lu]|curr| vpu0| vpu1| vpu2|mdla0|mdla1| conn|iommu|vcore|\n| opp|",
-		   (ulong)time, rem_nsec / 1000);
+		"|curr| vpu0| vpu1| vpu2|mdla0|mdla1| conn|iommu|vcore|\n| opp|");
 
 	seq_printf(s, "  %d  |", apusys_freq_to_opp(V_VPU0,
 					info.dsp1_freq * info.dump_div));

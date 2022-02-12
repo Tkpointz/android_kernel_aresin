@@ -44,6 +44,21 @@ mediatek-drm-y := mtk_drm_drv.o \
 		  mtk_dmdp_aal.o \
 		  mtk_fbconfig_kdebug.o
 
+mediatek-drm-y += \
+		  mi_disp/mi_disp_sysfs.o \
+		  mi_disp/mi_dsi_display.o \
+		  mi_disp/mi_dsi_panel.o \
+		  mi_disp/mi_disp_notifier.o \
+		  mi_disp/mi_disp_core.o \
+		  mi_disp/mi_disp_feature.o \
+		  mi_disp/mi_disp_log.o \
+		  mi_disp/mi_disp_procfs.o \
+		  mi_disp/mi_disp_file.o \
+		  mi_disp/mi_disp_print.o \
+		  mi_disp/mi_disp_debugfs.o \
+		  mi_disp/mi_cooler_brightness_clone.o \
+
+
 ifeq ($(CONFIG_DRM_MEDIATEK_DEBUG_FS),y)
 mediatek-drm-y += mtk_drm_debugfs.o
 endif

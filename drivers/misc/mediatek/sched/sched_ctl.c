@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -645,15 +646,14 @@ int select_task_prefer_cpu(struct task_struct *p, int new_cpu)
 			break;
 #endif
 
-		if (cpumask_test_cpu(new_cpu, &domain->possible_cpus) && !cpu_isolated(new_cpu))
+		if (cpumask_test_cpu(new_cpu, &domain->possible_cpus))
 			goto out;
 
 		for_each_cpu(iter_cpu, &domain->possible_cpus) {
 
 			/* tsk with prefer idle to find bigger idle cpu */
 			if (!cpu_online(iter_cpu) ||
-				!cpumask_test_cpu(iter_cpu, tsk_cpus_allow) ||
-				cpu_isolated(iter_cpu))
+				!cpumask_test_cpu(iter_cpu, tsk_cpus_allow))
 				continue;
 
 			/* favoring tasks that prefer idle cpus
@@ -706,9 +706,7 @@ void sched_set_boost_fg(void)
 	 */
 
 	nr = arch_get_nr_clusters();
-	arch_get_cluster_cpus(&cpus, 0);
-	if (nr > 1)
-		cpumask_xor(&cpus, &cpus, cpu_possible_mask);
+	arch_get_cluster_cpus(&cpus, nr-1);
 
 	set_user_space_global_cpuset(&cpus, 3);
 	set_user_space_global_cpuset(&cpus, 2);

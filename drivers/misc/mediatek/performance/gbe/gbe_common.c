@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -171,8 +172,8 @@ void gbe_boost(enum GBE_KICKER kicker, int boost)
 
 	if (boost_final) {
 		for (i = 0; i < cluster_num; i++) {
-			pld[i].max = 3000000;
-			pld[i].min = 3000000;
+			pld[i].max = 2300000;
+			pld[i].min = 2300000;
 		}
 		uclamp_pct = 100;
 		pm_req = 0;

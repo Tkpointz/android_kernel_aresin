@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #ifndef __CMDQ_UTIL_H__
@@ -38,6 +39,34 @@ enum {
 	do { \
 		cmdq_dump(fmt, ##args); \
 		cmdq_util_error_save("[cmdq][err] "fmt"\n", ##args); \
+	} while (0)
+
+#define cmdq_util_user_msg(chan, fmt, args...) \
+	do { \
+		if (chan) {  \
+			u32 gce = cmdq_util_hw_id( \
+				(u32)cmdq_mbox_get_base_pa(chan)); \
+			s32 thd = cmdq_mbox_chan_id(chan); \
+			pr_notice("[%s]<%u>(%d)[cmdq] "fmt"\n", \
+				cmdq_thread_module_dispatch(gce, thd), \
+				gce, thd, ##args); \
+			cmdq_util_error_save("[cmdq] "fmt"\n", ##args); \
+		} else \
+			cmdq_util_msg(fmt, ##args); \
+	} while (0)
+
+#define cmdq_util_user_err(chan, fmt, args...) \
+	do { \
+		if (chan) {  \
+			u32 gce = cmdq_util_hw_id( \
+				(u32)cmdq_mbox_get_base_pa(chan)); \
+			s32 thd = cmdq_mbox_chan_id(chan); \
+			pr_notice("[%s]<%u>(%d)[cmdq][err] "fmt"\n", \
+				cmdq_thread_module_dispatch(gce, thd), \
+				gce, thd, ##args); \
+			cmdq_util_error_save("[cmdq][err] "fmt"\n", ##args); \
+		} else \
+			cmdq_util_msg(fmt, ##args); \
 	} while (0)
 
 #define DB_OPT_CMDQ	(DB_OPT_DEFAULT | DB_OPT_PROC_CMDQ_INFO | \

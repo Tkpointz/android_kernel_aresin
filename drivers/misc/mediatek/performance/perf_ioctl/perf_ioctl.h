@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -80,6 +81,19 @@ struct _EARA_NN_PACKAGE {
 	};
 };
 
+#define EARA_MAX_COUNT 10
+#define EARA_PROC_NAME_LEN 16
+
+struct _EARA_THRM_PACKAGE {
+	__s32 request;
+	__s32 reset;
+	__s32 pair_pid[EARA_MAX_COUNT];
+	__u64 pair_bufid[EARA_MAX_COUNT];
+	__s32 pair_tfps[EARA_MAX_COUNT];
+	__s32 pair_diff[EARA_MAX_COUNT];
+	char proc_name[EARA_MAX_COUNT][EARA_PROC_NAME_LEN];
+};
+
 enum  {
 	USAGE_DEVTYPE_CPU  = 0,
 	USAGE_DEVTYPE_GPU  = 1,
@@ -100,6 +114,10 @@ enum  {
 #define EARA_NN_END                 _IOW('g', 2, struct _EARA_NN_PACKAGE)
 #define EARA_GETUSAGE               _IOW('g', 3, struct _EARA_NN_PACKAGE)
 #define EARA_GETSTATE               _IOW('g', 4, struct _EARA_NN_PACKAGE)
+
+#define EARA_ENABLE                 _IOW('g', 1, struct _EARA_THRM_PACKAGE)
+#define EARA_GETINFO                _IOW('g', 2, struct _EARA_THRM_PACKAGE)
+#define EARA_TDIFF                  _IOW('g', 3, struct _EARA_THRM_PACKAGE)
 
 #endif
 

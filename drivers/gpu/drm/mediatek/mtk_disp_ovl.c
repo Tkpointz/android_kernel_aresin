@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -1465,8 +1466,8 @@ static void mtk_ovl_layer_config(struct mtk_ddp_comp *comp, unsigned int idx,
 		ext_lye_idx = state->comp_state.ext_lye_id;
 	} else
 		lye_idx = idx;
-	DDPINFO("%s+ idx:%d, enable:%d, fmt:0x%x\n", __func__, idx,
-		pending->enable, pending->format);
+	DDPINFO("%s+ idx:%d lye_idx:%d, enable:%d, fmt:0x%x\n", __func__, idx,
+		lye_idx, pending->enable, pending->format);
 	if (!pending->enable)
 		mtk_ovl_layer_off(comp, lye_idx, ext_lye_idx, handle);
 

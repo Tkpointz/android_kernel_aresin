@@ -3,6 +3,7 @@
 // mt6359.c  --  mt6359 ALSA SoC audio codec driver
 //
 // Copyright (c) 2018 MediaTek Inc.
+// Copyright (C) 2021 XiaoMi, Inc.
 // Author: KaiChieh Chuang <kaichieh.chuang@mediatek.com>
 
 #include <linux/platform_device.h>
@@ -101,6 +102,7 @@ enum {
 	SUPPLY_SEQ_ADC_CLKGEN,
 	SUPPLY_SEQ_AUD_VOW,
 	SUPPLY_SEQ_VOW_CLK,
+	SUPPLY_SEQ_VOW_LDO,
 	SUPPLY_SEQ_TOP_CK,
 	SUPPLY_SEQ_TOP_CK_LAST,
 	SUPPLY_SEQ_DCC_CLK,
@@ -256,6 +258,7 @@ struct mt6359_priv {
 
 	int hp_gain_ctl;
 	int hp_hifi_mode;
+	int hp_pull_low_off;
 
 	struct mt6359_codec_ops ops;
 	struct dc_trim_data dc_trim;
@@ -1882,6 +1885,12 @@ static int mtk_hp_disable(struct mt6359_priv *priv)
 	/* Disable HP aux output stage */
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON1,
 			   0x3 << 2, 0x0);
+	if (priv->hp_pull_low_off) {
+		regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
+				RG_HPLOUTPUTSTBENH_VAUDP32_MASK_SFT, 0x0);
+		regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
+				RG_HPROUTPUTSTBENH_VAUDP32_MASK_SFT, 0x0);
+	}
 	return 0;
 }
 
@@ -1933,15 +1942,15 @@ static int mtk_hp_impedance_disable(struct mt6359_priv *priv)
 
 	/* Disable AUD_CLK */
 	mt6359_set_decoder_clk(priv, false);
-
+	if (!priv->hp_pull_low_off) {
 	/* Enable HPR/L STB enhance circuits for off state */
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
-			   RG_HPROUTPUTSTBENH_VAUDP32_MASK_SFT,
-			   0x3 << RG_HPROUTPUTSTBENH_VAUDP32_SFT);
+			RG_HPROUTPUTSTBENH_VAUDP32_MASK_SFT,
+			0x3 << RG_HPROUTPUTSTBENH_VAUDP32_SFT);
 	regmap_update_bits(priv->regmap, MT6359_AUDDEC_ANA_CON2,
-			   RG_HPLOUTPUTSTBENH_VAUDP32_MASK_SFT,
-			   0x3 << RG_HPLOUTPUTSTBENH_VAUDP32_SFT);
-
+			RG_HPLOUTPUTSTBENH_VAUDP32_MASK_SFT,
+			0x3 << RG_HPLOUTPUTSTBENH_VAUDP32_SFT);
+	}
 #ifdef CONFIG_MTK_ACCDET
 	/* from accdet request */
 	accdet_modify_vref_volt();
@@ -2435,14 +2444,6 @@ static int mt_vow_aud_lpw_event(struct snd_soc_dapm_widget *w,
 	case SND_SOC_DAPM_PRE_PMU:
 		/* add delay for RC Calibration */
 		usleep_range(1000, 1200);
-		/* Enable VOW AND gate CLK */
-		/* Select VOW CLKSQ out */
-		regmap_update_bits(priv->regmap, MT6359_AUDENC_ANA_CON23,
-				   RG_CLKAND_EN_VOW_MASK_SFT,
-				   0x1 << RG_CLKAND_EN_VOW_SFT);
-		regmap_update_bits(priv->regmap, MT6359_AUDENC_ANA_CON23,
-				   RG_VOWCLK_SEL_EN_VOW_MASK_SFT,
-				   0x1 << RG_VOWCLK_SEL_EN_VOW_SFT);
 		/* Enable audio uplink LPW mode */
 		/* Enable Audio ADC 1st Stage LPW */
 		/* Enable Audio ADC 2nd & 3rd LPW */
@@ -2457,14 +2458,6 @@ static int mt_vow_aud_lpw_event(struct snd_soc_dapm_widget *w,
 					   0x0039, 0x0039);
 		break;
 	case SND_SOC_DAPM_POST_PMD:
-		/* Disable VOW AND gate CLK */
-		/* Select VOW AND gate out */
-		regmap_update_bits(priv->regmap, MT6359_AUDENC_ANA_CON23,
-				   RG_CLKAND_EN_VOW_MASK_SFT,
-				   0x0 << RG_CLKAND_EN_VOW_SFT);
-		regmap_update_bits(priv->regmap, MT6359_AUDENC_ANA_CON23,
-				   RG_VOWCLK_SEL_EN_VOW_MASK_SFT,
-				   0x0 << RG_VOWCLK_SEL_EN_VOW_SFT);
 		/* Disable audio uplink LPW mode */
 		/* Disable Audio ADC 1st Stage LPW */
 		/* Disable Audio ADC 2nd & 3rd LPW */
@@ -3653,6 +3646,9 @@ static const struct snd_soc_dapm_widget mt6359_dapm_widgets[] = {
 	SND_SOC_DAPM_SUPPLY_S("VOW_CLK", SUPPLY_SEQ_VOW_CLK,
 			      MT6359_DCXO_CW11,
 			      RG_XO_VOW_EN_SFT, 0, NULL, 0),
+	SND_SOC_DAPM_SUPPLY_S("VOW_LDO", SUPPLY_SEQ_VOW_LDO,
+			      MT6359_AUDENC_ANA_CON23,
+			      RG_CLKSQ_EN_VOW_SFT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("VOW_DIG_CFG", SUPPLY_SEQ_VOW_DIG_CFG,
 			      MT6359_AUD_TOP_CKPDN_CON0,
 			      RG_VOW13M_CK_PDN_SFT, 1,
@@ -4340,6 +4336,7 @@ static const struct snd_soc_dapm_route mt6359_dapm_routes[] = {
 		{"VOW TX", NULL, "VOW_AUD_LPW", mt_vow_amic_connect},
 		{"VOW TX", NULL, "VOW_CLK"},
 		{"VOW TX", NULL, "AUD_VOW"},
+		{"VOW TX", NULL, "VOW_LDO", mt_vow_amic_connect},
 		{"VOW TX", NULL, "VOW_DIG_CFG"},
 		{"VOW TX", NULL, "VOW_PERIODIC_CFG", mt_vow_amic_dcc_connect},
 	{"VOW_UL_SRC_MUX", "AMIC", "VOW_AMIC0_MUX"},
@@ -7729,6 +7726,11 @@ static int mt6359_platform_driver_probe(struct platform_device *pdev)
 #endif
 	if (IS_ERR(priv->regmap))
 		return PTR_ERR(priv->regmap);
+	of_property_read_u32(pdev->dev.of_node,
+			"always_pull_low_off",
+			&priv->hp_pull_low_off);
+	dev_info(&pdev->dev, "%s(), hp_pull_low_off=%d\n",
+			__func__, priv->hp_pull_low_off);
 
 #ifdef CONFIG_DEBUG_FS
 	/* create debugfs file */

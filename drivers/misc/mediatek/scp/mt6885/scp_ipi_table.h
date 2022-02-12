@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -78,15 +79,22 @@ struct mtk_mbox_pin_recv scp_mbox_pin_recv[] = {
 	{1, 0, 0, 0, 1, 0, PIN_IN_SIZE_SCP_RAM_DUMP_0, 0,
 	 IPI_IN_SCP_RAM_DUMP_0, { 0 }, 0, 0, 0, { { { { 0 } } } },
 	{0, 0, 0, 0, 0, 0} },
+	{1, 0, 0, 0, 1, 0, PIN_IN_SIZE_AUDIO_ULTRA_SND_ACK_0, 0,
+	 IPI_IN_AUDIO_ULTRA_SND_ACK_0, { 0 }, 0, 0, 0, { { { { 0 } } } },
+	{0, 0, 0, 0, 0, 0} },
+	{1, 0, 0, 0, 1, 0, PIN_IN_SIZE_AUDIO_ULTRA_SND_0, 0,
+	 IPI_IN_AUDIO_ULTRA_SND_0, { 0 }, 0, 0, 0, { { { { 0 } } } },
+	{0, 0, 0, 0, 0, 0} },
 	{1, 0, 1, 0, 1, 0, PIN_OUT_R_SIZE_SLEEP_0, 0,
 	 IPI_OUT_C_SLEEP_0, { 0 }, 0, 0, 0, { { { { 0 } } } },
+	{0, 0, 0, 0, 0, 0} },
+	{1, 0, 0, 0, 1, 0, PIN_IN_SIZE_ALS_CALI_0, 0,
+	 IPI_IN_ALS_CALI, { 0 }, 0, 0, 0, { { { { 0 } } } },
 	{0, 0, 0, 0, 0, 0} },
 	{2, 0, 0, 0, 1, 0, PIN_IN_SIZE_SCP_MPOOL, 0,
 	 IPI_IN_SCP_MPOOL_0, { 0 }, 0, 0, 0, { { { { 0 } } } },
 	{0, 0, 0, 0, 0, 0} },
-	{3, 0, 0, 0, 1, 0, PIN_IN_SIZE_AUDIO_ULTRA_SND_1, 0,
-	 IPI_IN_AUDIO_ULTRA_SND_1, { 0 }, 0, 0, 0, { { { { 0 } } } },
-	{0, 0, 0, 0, 0, 0} },
+
 	{3, 0, 0, 0, 1, 0, PIN_IN_SIZE_SCP_ERROR_INFO_1, 0,
 	 IPI_IN_SCP_ERROR_INFO_1, { 0 }, 0, 0, 0, { { { { 0 } } } },
 	{0, 0, 0, 0, 0, 0} },
@@ -135,10 +143,13 @@ struct mtk_mbox_pin_send scp_mbox_pin_send[] = {
 	 IPI_OUT_C_SLEEP_0, { { 0 } }, { 0 }, { { { { 0 } } } } },
 	{1, 0, 0, 0, PIN_OUT_SIZE_TEST_0, 0,
 	 IPI_OUT_TEST_0, { { 0 } }, { 0 }, { { { { 0 } } } } },
+	{1, 0, 0, 0, PIN_OUT_SIZE_AUDIO_ULTRA_SND_0, 0,
+	 IPI_OUT_AUDIO_ULTRA_SND_0, { { 0 } }, { 0 }, { { { { 0 } } } } },
+	{1, 0, 0, 0, PIN_OUT_SIZE_ALS_CALI_0, 0,
+	 IPI_OUT_ALS_CALI, { { 0 } }, { 0 }, { { { { 0 } } } } },
 	{2, 0, 0, 0, PIN_OUT_SIZE_SCP_MPOOL, 0,
 	 IPI_OUT_SCP_MPOOL_0, { { 0 } }, { 0 }, { { { { 0 } } } } },
-	{3, 0, 0, 0, PIN_OUT_SIZE_AUDIO_ULTRA_SND_1, 0,
-	 IPI_OUT_AUDIO_ULTRA_SND_1, { { 0 } }, { 0 }, { { { { 0 } } } } },
+
 	{3, 0, 0, 0, PIN_OUT_SIZE_DVFS_SET_FREQ_1, 0,
 	 IPI_OUT_DVFS_SET_FREQ_1, { { 0 } }, { 0 }, { { { { 0 } } } } },
 	{3, 0, 0, 0, PIN_OUT_C_SIZE_SLEEP_1, 0,

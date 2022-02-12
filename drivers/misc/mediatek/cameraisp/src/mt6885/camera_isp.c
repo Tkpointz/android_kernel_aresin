@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -1879,18 +1880,16 @@ void dumpAllRegs(enum ISP_DEV_NODE_ENUM module)
 	LOG_INF("----%s(module:%d)----\n", __func__, module);
 
 	for (i = 0 ; i < ISP_REG_RANGE; i += 0x0020) {
-		if ((i < 0x6000) || (i > 0x7BFF)) {
-			LOG_INF(STR_REG,
-				log_ba + i,
-				ISP_RD32(isp_devs[module].regs + i),
-				ISP_RD32(isp_devs[module].regs + i + 0x0004),
-				ISP_RD32(isp_devs[module].regs + i + 0x0008),
-				ISP_RD32(isp_devs[module].regs + i + 0x000C),
-				ISP_RD32(isp_devs[module].regs + i + 0x0010),
-				ISP_RD32(isp_devs[module].regs + i + 0x0014),
-				ISP_RD32(isp_devs[module].regs + i + 0x0018),
-				ISP_RD32(isp_devs[module].regs + i + 0x001C));
-		}
+		LOG_INF(STR_REG,
+			log_ba + i,
+			ISP_RD32(isp_devs[module].regs + i),
+			ISP_RD32(isp_devs[module].regs + i + 0x0004),
+			ISP_RD32(isp_devs[module].regs + i + 0x0008),
+			ISP_RD32(isp_devs[module].regs + i + 0x000C),
+			ISP_RD32(isp_devs[module].regs + i + 0x0010),
+			ISP_RD32(isp_devs[module].regs + i + 0x0014),
+			ISP_RD32(isp_devs[module].regs + i + 0x0018),
+			ISP_RD32(isp_devs[module].regs + i + 0x001C));
 	}
 	g_is_dumping[module] = MFALSE;
 }
@@ -2004,9 +2003,6 @@ static void ISP_DumpDmaDeepDbg(enum ISP_IRQ_TYPE_ENUM module, unsigned int ErrSt
 		LOG_NOTICE("unsupported module:0x%x\n", module);
 		return;
 	}
-
-	if (ErrStatus & TG_GBERR_ST)
-		return;
 
 	if (ErrStatus & TG_ERR_ST) {
 		STT_FBC_Reset(regModule);
@@ -5429,48 +5425,33 @@ static long ISP_ioctl(struct file *pFile, unsigned int Cmd, unsigned long Param)
 		index = cq0_note.cq0_data[CAM_A][0] - ISP_CAM_A_IDX;
 		if (index <= (ISP_CAM_C_IDX - ISP_CAM_A_IDX)) {
 			if (cq0_note.cq0_data[CAM_A][1] != 0) {
-				g_cqBaseAddr[index][0] =
-					cq0_note.cq0_data[CAM_A][1];
-				g_cq0NextBA[index][0] =
-					cq0_note.cq0_data[CAM_A][2];
-				if (sof_count[index] != 0) {
-					g_isSwitch[index] =
-					(g_ExposureNum[index] !=
-					 cq0_note.exposureNum)
+				g_cqBaseAddr[index][0] = cq0_note.cq0_data[CAM_A][1];
+				g_cq0NextBA[index][0] = cq0_note.cq0_data[CAM_A][2];
+				g_isSwitch[index] = (g_ExposureNum[index] != EXP_NONE &&
+					g_ExposureNum[index] != cq0_note.exposureNum)
 					? MTRUE:MFALSE;
-				}
 				g_ExposureNum[index] = cq0_note.exposureNum;
 			}
 		}
 		index = cq0_note.cq0_data[CAM_B][0] - ISP_CAM_A_IDX;
 		if (index <= (ISP_CAM_C_IDX - ISP_CAM_A_IDX)) {
 			if (cq0_note.cq0_data[CAM_B][1] != 0) {
-				g_cqBaseAddr[index][0] =
-					cq0_note.cq0_data[CAM_B][1];
-				g_cq0NextBA[index][0] =
-					cq0_note.cq0_data[CAM_B][2];
-				if (sof_count[index] != 0) {
-					g_isSwitch[index] =
-					(g_ExposureNum[index] !=
-					 cq0_note.exposureNum)
+				g_cqBaseAddr[index][0] = cq0_note.cq0_data[CAM_B][1];
+				g_cq0NextBA[index][0] = cq0_note.cq0_data[CAM_B][2];
+				g_isSwitch[index] = (g_ExposureNum[index] != EXP_NONE &&
+					g_ExposureNum[index] != cq0_note.exposureNum)
 					? MTRUE:MFALSE;
-				}
 				g_ExposureNum[index] = cq0_note.exposureNum;
 			}
 		}
 		index = cq0_note.cq0_data[CAM_C][0] - ISP_CAM_A_IDX;
 		if (index <= (ISP_CAM_C_IDX - ISP_CAM_A_IDX)) {
 			if (cq0_note.cq0_data[CAM_C][1] != 0) {
-				g_cqBaseAddr[index][0] =
-					cq0_note.cq0_data[CAM_C][1];
-				g_cq0NextBA[index][0] =
-					cq0_note.cq0_data[CAM_C][2];
-				if (sof_count[index] != 0) {
-					g_isSwitch[index] =
-					(g_ExposureNum[index] !=
-					 cq0_note.exposureNum)
+				g_cqBaseAddr[index][0] = cq0_note.cq0_data[CAM_C][1];
+				g_cq0NextBA[index][0] = cq0_note.cq0_data[CAM_C][2];
+				g_isSwitch[index] = (g_ExposureNum[index] != EXP_NONE &&
+					g_ExposureNum[index] != cq0_note.exposureNum)
 					? MTRUE:MFALSE;
-				}
 				g_ExposureNum[index] = cq0_note.exposureNum;
 			}
 		}

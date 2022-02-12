@@ -165,6 +165,7 @@ static const struct mt6360_chg_platform_data def_platform_data = {
 	.aicc_once = true,
 	.post_aicc = true,
 	.batoc_notify = false,
+	.en_eoc = true,
 	.chg_name = "primary_chg",
 };
 
@@ -2529,14 +2530,16 @@ static const struct mt6360_pdata_prop mt6360_pdata_props[] = {
 	MT6360_PDATA_VALPROP(ircmp_vclamp, struct mt6360_chg_platform_data,
 			     MT6360_PMU_CHG_CTRL18, 0, 0x07,
 			     mt6360_trans_ircmp_vclamp_sel, 0),
-#if 0
 	MT6360_PDATA_VALPROP(en_te, struct mt6360_chg_platform_data,
 			     MT6360_PMU_CHG_CTRL2, 4, 0x10, NULL, 0),
+#if 0
 	MT6360_PDATA_VALPROP(en_wdt, struct mt6360_chg_platform_data,
 			     MT6360_PMU_CHG_CTRL13, 7, 0x80, NULL, 0),
 #endif
 	MT6360_PDATA_VALPROP(aicc_once, struct mt6360_chg_platform_data,
 			     MT6360_PMU_CHG_CTRL14, 0, 0x04, NULL, 0),
+	MT6360_PDATA_VALPROP(en_eoc, struct mt6360_chg_platform_data,
+			     MT6360_PMU_CHG_CTRL9, 3, 0x08, NULL, 0),
 };
 
 static int mt6360_chg_apply_pdata(struct mt6360_pmu_chg_info *mpci,
@@ -2567,6 +2570,7 @@ static const struct mt6360_val_prop mt6360_val_props[] = {
 	MT6360_DT_VALPROP(aicc_once, struct mt6360_chg_platform_data),
 	MT6360_DT_VALPROP(post_aicc, struct mt6360_chg_platform_data),
 	MT6360_DT_VALPROP(batoc_notify, struct mt6360_chg_platform_data),
+	MT6360_DT_VALPROP(en_eoc, struct mt6360_chg_platform_data),
 };
 
 static int mt6360_chg_parse_dt_data(struct device *dev,

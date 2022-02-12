@@ -31,6 +31,7 @@
 #include <linux/slab.h>
 #include <linux/cpu.h>
 #include <linux/cpu_cooling.h>
+#include <linux/of_device.h>
 
 #include <trace/events/thermal.h>
 
@@ -149,10 +150,10 @@ static int cpufreq_thermal_notifier(struct notifier_block *nb,
 				    unsigned long event, void *data)
 {
 	struct cpufreq_policy *policy = data;
-	unsigned long clipped_freq;
+	unsigned long clipped_freq = ULONG_MAX;
 	struct cpufreq_cooling_device *cpufreq_cdev;
 
-	if (event != CPUFREQ_ADJUST)
+	if (event != CPUFREQ_THERMAL)
 		return NOTIFY_DONE;
 
 	mutex_lock(&cooling_list_lock);
@@ -175,12 +176,12 @@ static int cpufreq_thermal_notifier(struct notifier_block *nb,
 		 * But, if clipped_freq is greater than policy->max, we don't
 		 * need to do anything.
 		 */
-		clipped_freq = cpufreq_cdev->clipped_freq;
-
-		if (policy->max > clipped_freq)
-			cpufreq_verify_within_limits(policy, 0, clipped_freq);
-		break;
+		if (clipped_freq > cpufreq_cdev->clipped_freq)
+			clipped_freq = cpufreq_cdev->clipped_freq;
 	}
+
+	cpufreq_verify_within_limits(policy, 0, clipped_freq);
+
 	mutex_unlock(&cooling_list_lock);
 
 	return NOTIFY_OK;
@@ -452,13 +453,15 @@ static int cpufreq_set_cur_state(struct thermal_cooling_device *cdev,
 
 	/* Check if the old cooling action is same as new cooling action */
 	if (cpufreq_cdev->cpufreq_state == state)
-		return 0;
+		return cpufreq_cdev->max_level;
 
 	clip_freq = cpufreq_cdev->freq_table[state].frequency;
 	cpufreq_cdev->cpufreq_state = state;
 	cpufreq_cdev->clipped_freq = clip_freq;
 
+	get_online_cpus();
 	cpufreq_update_policy(cpufreq_cdev->policy->cpu);
+	put_online_cpus();
 
 	return 0;
 }
@@ -941,3 +944,30 @@ void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
 	kfree(cpufreq_cdev);
 }
 EXPORT_SYMBOL_GPL(cpufreq_cooling_unregister);
+
+int cpufreq_platform_cooling_register(void)
+{
+	struct cpufreq_policy *policy;
+	struct device_node *cpu_node;
+	int cpu;
+
+	for_each_cpu(cpu, cpu_online_mask) {
+		policy = cpufreq_cpu_get(cpu);
+		if (!policy) {
+			pr_err("no policy for cpu%d\n", cpu);
+			continue;
+		}
+
+		cpu_node = of_cpu_device_node_get(cpumask_first(policy->cpus));
+		if (!cpu_node) {
+			pr_err("no cpu node\n");
+			continue;
+		}
+		__cpufreq_cooling_register(cpu_node, policy, 0, NULL);
+	}
+
+	return 0;
+
+}
+
+late_initcall(cpufreq_platform_cooling_register);

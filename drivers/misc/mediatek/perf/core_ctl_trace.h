@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Copyright (C) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #undef TRACE_SYSTEM
@@ -53,32 +54,15 @@ TRACE_EVENT(core_ctl_demand_eval,
 			unsigned int old_need,
 			unsigned int new_need,
 			unsigned int active_cpus,
-			unsigned int min_cpus,
-			unsigned int max_cpus,
-			unsigned int boost,
-			unsigned int enable,
 			unsigned int updated),
-
-		TP_ARGS(
-			cid,
-			old_need,
-			new_need,
-			active_cpus,
-			min_cpus,
-			max_cpus,
-			boost,
-			enable,
-			updated),
-
+		
+		TP_ARGS(cid, old_need, new_need, active_cpus, updated),
+		
 		TP_STRUCT__entry(
 			__field(u32, cid)
 			__field(u32, old_need)
 			__field(u32, new_need)
 			__field(u32, active_cpus)
-			__field(u32, min_cpus)
-			__field(u32, max_cpus)
-			__field(u32, boost)
-			__field(u32, enable)
 			__field(u32, updated)
 		),
 
@@ -87,22 +71,12 @@ TRACE_EVENT(core_ctl_demand_eval,
 			__entry->old_need = old_need;
 			__entry->new_need = new_need;
 			__entry->active_cpus = active_cpus;
-			__entry->min_cpus = min_cpus;
-			__entry->max_cpus = max_cpus;
-			__entry->boost = boost;
-			__entry->enable = enable;
 			__entry->updated = updated;
 		),
 
-		TP_printk("cid=%u, old=%u, new=%u, act=%u min=%u max=%u bst=%u enbl=%u update=%u",
-			__entry->cid,
-			__entry->old_need,
-			__entry->new_need,
-			__entry->active_cpus,
-			__entry->min_cpus,
-			__entry->max_cpus,
-			__entry->boost,
-			__entry->enable,
+		TP_printk("cid=%u, old_need=%u, new_need=%u, active_cpus=%u updated=%u",
+			__entry->cid, __entry->old_need,
+			__entry->new_need, __entry->active_cpus,
 			__entry->updated)
 );
 

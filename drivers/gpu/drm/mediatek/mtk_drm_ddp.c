@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -332,7 +333,6 @@
 #define MT6885_DISP_DITHER0_MOUT_EN	0xF50
 	#define DISP_DITHER0_MOUT_EN_TO_DSI0_SEL	BIT(0)
 	#define DISP_DITHER0_MOUT_EN_TO_WDMA0_SEL	BIT(1)
-	#define DISP_DITHER0_MOUT_EN_TO_PQ0_SOUT	BIT(3)
 #define MT6885_DSI0_SEL_IN		0xF54
 	#define DSI0_SEL_IN_FROM_DISP_DITHER0_MOUT	0x1
 #define MT6885_DISP_WDMA0_SEL_IN	0xF58
@@ -416,10 +416,10 @@
 #define MT6885_DSI1_SEL_IN		0xFF0
 	#define DSI1_SEL_IN_FROM_DISP_DITHER1_MOUT	0x1
 #define MT6885_DISP_WDMA1_SEL_IN	0xFF4
-	#define MT6885_WDMA1_SEL_IN_FROM_DISP_DITHER1_MOUT	0x0
-	#define MT6885_WDMA1_SEL_IN_FROM_DISP_TOVL1_OUT0_MOUT	0x2
-	#define MT6885_WDMA1_SEL_IN_FROM_DISP_TOVL1_OUT1_MOUT	0x3
-	#define MT6885_WDMA1_SEL_IN_FROM_DISP_TOVL3_2L_OUT0_MOUT	0x4
+	#define WDMA1_SEL_IN_FROM_DISP_DITHER1_MOUT	0x0
+	#define WDMA1_SEL_IN_FROM_DISP_TOVL1_OUT0_MOUT	0x2
+	#define WDMA1_SEL_IN_FROM_DISP_TOVL1_OUT1_MOUT	0x3
+	#define WDMA1_SEL_IN_FROM_DISP_TOVL3_2L_OUT0_MOUT	0x4
 #define MT6885_DISP_PQ0_SOUT_SEL	0xFF8
 
 #define MT6885_DISP_MUTEX0_MOD0 0x30
@@ -3090,10 +3090,6 @@ static int mtk_ddp_mout_en_MT6885(const struct mtk_mmsys_reg_data *data,
 		next == DDP_COMPONENT_WDMA0) {
 		*addr = MT6885_DISP_DITHER0_MOUT_EN;
 		value = DISP_DITHER0_MOUT_EN_TO_WDMA0_SEL;
-	} else if (cur == DDP_COMPONENT_DITHER1 &&
-		next == DDP_COMPONENT_WDMA1) {
-		*addr = MT6885_DISP_DITHER1_MOUT_EN;
-		value = DISP_DITHER1_MOUT_EN_TO_WDMA1_SEL;
 	} else {
 		value = -1;
 	}
@@ -3165,11 +3161,11 @@ static int mtk_ddp_sel_in_MT6885(const struct mtk_mmsys_reg_data *data,
 	} else if (cur == DDP_COMPONENT_OVL1_VIRTUAL0 &&
 		next == DDP_COMPONENT_WDMA1) {
 		*addr = MT6885_DISP_WDMA1_SEL_IN;
-		value = MT6885_WDMA1_SEL_IN_FROM_DISP_TOVL1_OUT1_MOUT;
+		value = WDMA1_SEL_IN_FROM_DISP_TOVL1_OUT1_MOUT;
 	} else if (cur == DDP_COMPONENT_OVL1_2L_VIRTUAL0 &&
 		next == DDP_COMPONENT_WDMA1) {
 		*addr = MT6885_DISP_WDMA1_SEL_IN;
-		value = MT6885_WDMA1_SEL_IN_FROM_DISP_TOVL1_OUT0_MOUT;
+		value = WDMA1_SEL_IN_FROM_DISP_TOVL1_OUT0_MOUT;
 	} else if (cur == DDP_COMPONENT_RSZ0 &&
 		next == DDP_COMPONENT_OVL0) {
 		*addr = MT6885_DISP_RDMA2_RSZ0_RSZ1_SEL_IN;
@@ -3221,7 +3217,7 @@ static int mtk_ddp_sel_in_MT6885(const struct mtk_mmsys_reg_data *data,
 	} else if (cur == DDP_COMPONENT_OVL3_2L &&
 		next == DDP_COMPONENT_WDMA1) {
 		*addr = MT6885_DISP_WDMA1_SEL_IN;
-		value = MT6885_WDMA1_SEL_IN_FROM_DISP_TOVL3_2L_OUT0_MOUT;
+		value = WDMA1_SEL_IN_FROM_DISP_TOVL3_2L_OUT0_MOUT;
 	} else if (cur == DDP_COMPONENT_CCORR0 &&
 		next == DDP_COMPONENT_DMDP_AAL0) {
 		*addr = MT6885_DISP_MDP_AAL4_SEL_IN;
@@ -3249,15 +3245,11 @@ static int mtk_ddp_sel_in_MT6885(const struct mtk_mmsys_reg_data *data,
 	}  else if (cur == DDP_COMPONENT_OVL1_2L_VIRTUAL0 &&
 		next == DDP_COMPONENT_WDMA1) {
 		*addr = MT6885_DISP_WDMA1_SEL_IN;
-		value = MT6885_WDMA1_SEL_IN_FROM_DISP_TOVL3_2L_OUT0_MOUT;
+		value = WDMA1_SEL_IN_FROM_DISP_TOVL3_2L_OUT0_MOUT;
 	} else if (cur == DDP_COMPONENT_DITHER0 &&
 		next == DDP_COMPONENT_WDMA0) {
 		*addr = MT6885_DISP_WDMA0_SEL_IN;
 		value = MT6885_WDMA0_SEL_IN_FROM_DISP_DITHER0_MOUT;
-	} else if (cur == DDP_COMPONENT_DITHER1 &&
-		next == DDP_COMPONENT_WDMA1) {
-		*addr = MT6885_DISP_WDMA1_SEL_IN;
-		value = MT6885_WDMA1_SEL_IN_FROM_DISP_DITHER1_MOUT;
 	} else if (cur == DDP_COMPONENT_DMDP_AAL1 &&
 		next == DDP_COMPONENT_AAL1) {
 		*addr = MT6885_DISP_AAL1_SEL_IN;
@@ -4595,15 +4587,11 @@ void mtk_ddp_insert_dsc_prim_MT6885(struct mtk_drm_crtc *mtk_crtc,
 {
 	unsigned int addr, value;
 
-	/* remove DISP_DITHER0_MOUT -> DSI0_SEL*/
-	addr = MT6885_DISP_DITHER0_MOUT_EN;
-	value = DISP_DITHER0_MOUT_EN_TO_DSI0_SEL;
-	cmdq_pkt_write(handle, mtk_crtc->gce_obj.base,
-		       mtk_crtc->config_regs_pa + addr, ~value, value);
 	/* DISP_DITHER0_MOUT -> DISP_PQ0_SOUT */
-	value = DISP_DITHER0_MOUT_EN_TO_PQ0_SOUT;
+	addr = MT6885_DISP_DITHER0_MOUT_EN;
+	value = (1 << 3);
 	cmdq_pkt_write(handle, mtk_crtc->gce_obj.base,
-		       mtk_crtc->config_regs_pa + addr, value, value);
+		       mtk_crtc->config_regs_pa + addr, value, ~0);
 
 	/* DISP_PQ0_SOUT -> DISP_RDMA4_PQ0_MERGE0_SEL_IN */
 	addr = MT6885_DISP_PQ0_SOUT_SEL;
@@ -4636,16 +4624,11 @@ void mtk_ddp_insert_dsc_prim_MT6885(struct mtk_drm_crtc *mtk_crtc,
 	if (!mtk_crtc->is_dual_pipe)
 		return;
 
-	/* remove MT6885_DISP_DITHER1_MOUT_EN -> DSI1_SEL*/
-	addr = MT6885_DISP_DITHER1_MOUT_EN;
-	value = DISP_DITHER1_MOUT_EN_TO_DSI1_SEL;
-	cmdq_pkt_write(handle, mtk_crtc->gce_obj.base,
-		       mtk_crtc->config_regs_pa + addr, ~value, value);
 	/* MT6885_DISP_DITHER1_MOUT_EN -> PQ1_SOUT */
 	addr = MT6885_DISP_DITHER1_MOUT_EN;
 	value = DISP_DITHER1_MOUT_EN_TO_PQ1_SOUT;
 	cmdq_pkt_write(handle, mtk_crtc->gce_obj.base,
-		       mtk_crtc->config_regs_pa + addr, value, value);
+		       mtk_crtc->config_regs_pa + addr, value, ~0);
 
 	/* MT6885_DISP_PQ1_SOUT_SEL -> RDMA5_PQ1_SEL */
 	addr = MT6885_DISP_PQ1_SOUT_SEL;
@@ -4667,9 +4650,9 @@ void mtk_ddp_remove_dsc_prim_MT6885(struct mtk_drm_crtc *mtk_crtc,
 
 	/* DISP_DITHER0_MOUT -> DISP_PQ0_SOUT */
 	addr = MT6885_DISP_DITHER0_MOUT_EN;
-	value = DISP_DITHER0_MOUT_EN_TO_PQ0_SOUT;
+	value = 0;
 	cmdq_pkt_write(handle, mtk_crtc->gce_obj.base,
-		       mtk_crtc->config_regs_pa + addr, ~value, value);
+		       mtk_crtc->config_regs_pa + addr, value, ~0);
 
 	/* DISP_PQ0_SOUT -> DISP_RDMA4_PQ0_MERGE0_SEL_IN */
 	addr = MT6885_DISP_PQ0_SOUT_SEL;
@@ -4704,9 +4687,9 @@ void mtk_ddp_remove_dsc_prim_MT6885(struct mtk_drm_crtc *mtk_crtc,
 
 	/* MT6885_DISP_DITHER1_MOUT_EN -> PQ1_SOUT */
 	addr = MT6885_DISP_DITHER1_MOUT_EN;
-	value = DISP_DITHER1_MOUT_EN_TO_PQ1_SOUT;
+	value = DISP_DITHER1_MOUT_EN_TO_DSI1_SEL;
 	cmdq_pkt_write(handle, mtk_crtc->gce_obj.base,
-		       mtk_crtc->config_regs_pa + addr, ~value, value);
+		       mtk_crtc->config_regs_pa + addr, value, ~0);
 
 	/* MT6885_DISP_PQ1_SOUT_SEL -> RDMA5_PQ1_SEL */
 	addr = MT6885_DISP_PQ1_SOUT_SEL;
@@ -5422,7 +5405,6 @@ static irqreturn_t mtk_disp_mutex_irq_handler(int irq, void *dev_id)
 		if (val & (0x1 << m_id)) {
 			DDPIRQ("[IRQ] mutex%d sof!\n", m_id);
 			DRM_MMP_MARK(mutex[m_id], val, 0);
-			mtk_drm_cwb_backup_copy_size();
 			disp_aal_on_start_of_frame();
 		}
 		if (val & (0x1 << (m_id + DISP_MUTEX_TOTAL))) {

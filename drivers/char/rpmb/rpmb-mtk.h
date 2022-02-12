@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -28,7 +29,7 @@ extern struct msdc_host *mtk_msdc_host[];
 #define RPMB_IOCTL_WRITE_DATA   3
 #define RPMB_IOCTL_READ_DATA    4
 
-#if (defined(CONFIG_MICROTRUST_TEE_SUPPORT))
+#if (defined(CONFIG_MICROTRUST_TEE_SUPPORT)) || defined(CONFIG_MITEE)
 
 #define RPMB_MULTI_BLOCK_ACCESS 1
 
@@ -46,12 +47,13 @@ extern struct msdc_host *mtk_msdc_host[];
 #define RPMB_IOCTL_SOTER_READ_DATA    6
 #define RPMB_IOCTL_SOTER_GET_CNT      7
 #define RPMB_IOCTL_SOTER_GET_WR_SIZE      8
+#define RPMB_IOCTL_SOTER_SET_KEY      9
 
 struct rpmb_infor {
 	unsigned int size;
 	unsigned char *data_frame;
 };
-#endif /* CONFIG_MICROTRUST_TEE_SUPPORT */
+#endif /* CONFIG_MICROTRUST_TEE_SUPPORT || CONFIG_MITEE*/
 
 struct rpmb_ioc_param {
 	unsigned char *key;

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -1245,7 +1246,7 @@ static long hf_manager_ioctl(struct file *filp,
 		if (!test_bit(sensor_type, sensor_list_bitmap))
 			return -EINVAL;
 		memset(&cust_cmd, 0, sizeof(cust_cmd));
-		memcpy(cust_cmd.data, packet.byte, sizeof(cust_cmd.data));
+		memcpy(&cust_cmd, packet.byte, sizeof(cust_cmd));
 		if (hf_manager_custom_cmd(client, sensor_type, &cust_cmd))
 			return -EINVAL;
 		if (sizeof(packet.byte) < sizeof(cust_cmd))

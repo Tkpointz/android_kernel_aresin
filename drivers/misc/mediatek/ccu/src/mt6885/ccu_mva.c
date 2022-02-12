@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -181,12 +182,6 @@ int ccu_allocate_mem(struct CcuMemHandle *memHandle, int size, bool cached)
 		size, cached, memHandle->ionHandleKd);
 	if (_ccu_ion_client == NULL) {
 		LOG_ERR("%s: _ccu_ion_client is null!\n", __func__);
-		return -EINVAL;
-	}
-
-	if (ccu_buffer_handle[cached].ionHandleKd != NULL) {
-		LOG_ERR("idx %d handle %p is not empty\n", cached,
-		ccu_buffer_handle[cached].ionHandleKd);
 		return -EINVAL;
 	}
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -931,17 +932,6 @@ enum VC_FEATURE {
 
 	VC_PDAF_MIN_NUM = VC_RAW_DATA_MAX,
 	VC_PDAF_STATS = VC_PDAF_MIN_NUM,
-	VC_PDAF_STATS_NE,
-	VC_PDAF_STATS_ME,
-	VC_PDAF_STATS_SE,
-	VC_PDAF_STATS_PIX_1,
-	VC_PDAF_STATS_PIX_2,
-	VC_PDAF_STATS_NE_PIX_1,
-	VC_PDAF_STATS_NE_PIX_2,
-	VC_PDAF_STATS_ME_PIX_1,
-	VC_PDAF_STATS_ME_PIX_2,
-	VC_PDAF_STATS_SE_PIX_1,
-	VC_PDAF_STATS_SE_PIX_2,
 	VC_PDAF_MAX_NUM,
 
 	VC_HDR_MIN_NUM = VC_PDAF_MAX_NUM,
@@ -1016,7 +1006,7 @@ struct SET_PD_BLOCK_INFO_T {
 	MUINT32 i4BlockNumY;
 	/* 1: 1st line is long exposure, 0: 1st line is short exposure*/
 	MUINT32 i4LeFirst;
-	MUINT32 i4Crop[10][2]; /* [scenario][crop] -> (xcrop, ycrop) */
+	MUINT32 i4Crop[20][2]; /* [scenario][crop] -> (xcrop, ycrop) */
 };
 
 enum IMGSENSOR_HDR_SUPPORT_TYPE_ENUM {
@@ -1053,7 +1043,6 @@ enum IMGSENSOR_PDAF_SUPPORT_TYPE_ENUM {
 	PDAF_SUPPORT_RAW_DUALPD = 4,
 	PDAF_SUPPORT_CAMSV_DUALPD = 5,
 	PDAF_SUPPORT_RAW_LEGACY = 6,
-	PDAF_SUPPORT_CAMSV_QPD = 7,
 };
 
 enum SENSOR_PHY_TYPE_ENUM {

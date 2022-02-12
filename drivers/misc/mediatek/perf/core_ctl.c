@@ -1,14 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (C) 2020 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Copyright (c) 2020 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #include <linux/init.h>
@@ -87,8 +80,6 @@ struct cpu_data {
 #define MAX_NR_DOWN_THRESHOLD	4
 /* reference cpu_ctrl.h */
 #define CPU_KIR_CORE_CTL	11
-#define MAX_BTASK_THRESH	100
-#define MAX_CPU_TJ_DEGREE	100000
 
 static DEFINE_PER_CPU(struct cpu_data, cpu_state);
 static struct cluster_data cluster_state[MAX_CLUSTERS];
@@ -109,7 +100,6 @@ module_param_named(debug_enable, debug_enable, bool, 0600);
 
 static DEFINE_SPINLOCK(state_lock);
 static bool initialized;
-static unsigned int default_min_cpus[MAX_CLUSTERS] = {4, 2, 0};
 
 static unsigned int apply_limits(const struct cluster_data *cluster,
 		unsigned int need_cpus)
@@ -193,7 +183,6 @@ static bool demand_eval(struct cluster_data *cluster)
 		/* TODO: should consider that new_need == last_need ? */
 		if(new_need == cluster->active_cpus) {
 			cluster->next_offline_time = now;
-			cluster->need_cpus = new_need;
 			goto unlock;
 		}
 
@@ -206,14 +195,8 @@ static bool demand_eval(struct cluster_data *cluster)
 		cluster->next_offline_time = now;
 		cluster->need_cpus = new_need;
 	}
-	trace_core_ctl_demand_eval(cluster->cluster_id,
-			old_need, new_need,
-			cluster->active_cpus,
-			cluster->min_cpus,
-			cluster->max_cpus,
-			cluster->boost,
-			cluster->enable,
-			ret && need_flag);
+	trace_core_ctl_demand_eval(cluster->cluster_id, old_need, new_need,
+				cluster->active_cpus, ret && need_flag);
 unlock:
 	spin_unlock_irqrestore(&state_lock, flags);
 	return ret && need_flag;
@@ -265,7 +248,7 @@ void update_next_cluster_down_thresh(unsigned int index,
 {
 	struct cluster_data *next_cluster;
 
-	if (index == num_clusters - 1)
+	if (index == MAX_CLUSTERS - 1)
 		return;
 
 	next_cluster = &cluster_state[index + 1];
@@ -308,45 +291,6 @@ void set_not_preferred_locked(struct cluster_data *cluster, int cpu, bool enable
 		else
 			cluster->nr_not_preferred_cpus -= 1;
 	}
-}
-
-static void set_btask_up_thresh(struct cluster_data *cluster, unsigned int val)
-{
-	unsigned int old_thresh;
-	unsigned long flags;
-
-	spin_lock_irqsave(&state_lock, flags);
-	old_thresh = cluster->btask_up_thresh;
-	cluster->btask_up_thresh = cluster->btask_up_thresh;
-
-	if (old_thresh != cluster->btask_up_thresh) {
-		update_next_cluster_down_thresh(
-				cluster->cluster_id,
-				cluster->btask_up_thresh);
-		set_overutil_threshold(cluster->cluster_id,
-				       cluster->btask_up_thresh);
-	}
-	spin_unlock_irqrestore(&state_lock, flags);
-}
-
-static inline
-void set_cpu_tj_degree(struct cluster_data *cluster, int degree)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&state_lock, flags);
-	cluster->cpu_tj_degree = cluster->cpu_tj_degree;
-	spin_unlock_irqrestore(&state_lock, flags);
-}
-
-static inline
-void set_cpu_tj_btask_thresh(struct cluster_data *cluster, unsigned int val)
-{
-	unsigned long flags;
-
-	spin_lock_irqsave(&state_lock, flags);
-	cluster->cpu_tj_btask_thresh = val;
-	spin_unlock_irqrestore(&state_lock, flags);
 }
 
 /* ==================== export function ======================== */
@@ -505,57 +449,6 @@ extern int core_ctl_set_not_preferred(int cid, int cpu, bool enable)
 }
 EXPORT_SYMBOL_GPL(core_ctl_set_not_preferred);
 
-int core_ctl_set_btask_up_thresh(int cid, unsigned int val)
-{
-	struct cluster_data *cluster;
-
-	if (cid >= num_clusters)
-		return -EINVAL;
-
-	/* Range of up thrash should be 0 - 100 */
-	if (val > MAX_BTASK_THRESH)
-		return -EINVAL;
-
-	cluster = &cluster_state[cid];
-	set_btask_up_thresh(cluster, val);
-	return 0;
-}
-EXPORT_SYMBOL(core_ctl_set_btask_up_thresh);
-
-int core_ctl_set_cpu_tj_degree(int cid, unsigned int degree)
-{
-	struct cluster_data *cluster;
-
-	if (cid != AB_CLUSTER_ID)
-		return -EINVAL;
-
-	/* tempature <= 100 degree */
-	if (degree > MAX_CPU_TJ_DEGREE)
-		return -EINVAL;
-
-	cluster = &cluster_state[cid];
-	set_cpu_tj_degree(cluster, degree);
-	return 0;
-}
-EXPORT_SYMBOL(core_ctl_set_cpu_tj_degree);
-
-int core_ctl_set_cpu_tj_btask_thresh(int cid, unsigned int val)
-{
-	struct cluster_data *cluster;
-
-	/* only allow AB cluster */
-	if (cid != AB_CLUSTER_ID)
-		return -EINVAL;
-
-	if (val > MAX_BTASK_THRESH)
-		return -EINVAL;
-
-	cluster = &cluster_state[cid];
-	set_cpu_tj_btask_thresh(cluster, val);
-	return 0;
-}
-EXPORT_SYMBOL(core_ctl_set_cpu_tj_btask_thresh);
-
 /* ==================== sysctl node ======================== */
 
 static ssize_t store_min_cpus(struct cluster_data *state,
@@ -614,18 +507,28 @@ static ssize_t store_btask_up_thresh(struct cluster_data *state,
 		const char *buf, size_t count)
 {
 	unsigned int val;
+	unsigned int old_thresh;
+	unsigned long flags;
 
 	if (sscanf(buf, "%u\n", &val) != 1)
 		return -EINVAL;
 
-	/* No need to change up_thresh for the last cluster */
-	if (state->cluster_id == num_clusters-1)
+	/* No need to change up_thresh for max cluster */
+	if (state->cluster_id == AB_CLUSTER_ID)
 		return -EINVAL;
 
-	if (val > MAX_BTASK_THRESH)
-		return -EINVAL;
+	spin_lock_irqsave(&state_lock, flags);
+	old_thresh = state->btask_up_thresh;
+	state->btask_up_thresh =
+		(val <= 100) ? val : state->btask_up_thresh;
 
-	set_btask_up_thresh(state, val);
+	if (old_thresh != state->btask_up_thresh) {
+		update_next_cluster_down_thresh(state->cluster_id,
+				state->btask_up_thresh);
+		set_overutil_threshold(state->cluster_id,
+				       state->btask_up_thresh);
+	}
+	spin_unlock_irqrestore(&state_lock, flags);
 	return count;
 }
 
@@ -672,6 +575,7 @@ static ssize_t store_cpu_tj_degree(struct cluster_data *state,
 		const char *buf, size_t count)
 {
 	unsigned int val;
+	unsigned long flags;
 
 	if (sscanf(buf, "%u\n", &val) != 1)
 		return -EINVAL;
@@ -680,11 +584,11 @@ static ssize_t store_cpu_tj_degree(struct cluster_data *state,
 	if (state->cluster_id != AB_CLUSTER_ID)
 		return -EINVAL;
 
+	spin_lock_irqsave(&state_lock, flags);
 	/* tempature <= 100 degree */
-	if (val > MAX_CPU_TJ_DEGREE)
-		return -EINVAL;
-
-	set_cpu_tj_degree(state, val);
+	state->cpu_tj_degree =
+		(val <= 100000) ? val : state->cpu_tj_degree;
+	spin_unlock_irqrestore(&state_lock, flags);
 	return count;
 }
 
@@ -697,6 +601,7 @@ static ssize_t store_cpu_tj_btask_thresh(struct cluster_data *state,
 		const char *buf, size_t count)
 {
 	unsigned int val;
+	unsigned long flags;
 
 	if (sscanf(buf, "%u\n", &val) != 1)
 		return -EINVAL;
@@ -705,10 +610,10 @@ static ssize_t store_cpu_tj_btask_thresh(struct cluster_data *state,
 	if (state->cluster_id != AB_CLUSTER_ID)
 		return -EINVAL;
 
-	if (val > MAX_BTASK_THRESH)
-		return -EINVAL;
-
-	set_cpu_tj_btask_thresh(state, val);
+	spin_lock_irqsave(&state_lock, flags);
+	state->cpu_tj_btask_thresh =
+		(val <= 100) ? val : state->cpu_tj_btask_thresh;
+	spin_unlock_irqrestore(&state_lock, flags);
 	return count;
 }
 
@@ -952,6 +857,42 @@ static struct kobj_type ktype_core_ctl = {
 static unsigned int thermal_btask_thresh = 512;
 static unsigned int btask_thresh = 230;
 
+static unsigned int sport_mode_enable;
+static int set_sport_mode_enable(const char *buf,
+		const struct kernel_param *kp)
+{
+	int ret = 0;
+	unsigned int val;
+
+	ret = kstrtouint(buf, 0, &val);
+
+	if (val == ENABLE) {
+		cluster_state[L_CLUSTER_ID].enable = false;
+		core_ctl_set_limit_cpus(1, 2, 3);
+		core_ctl_set_limit_cpus(2, 0, 1);
+		ret = param_set_uint(buf, kp);
+	} else if (val == DISABLE) {
+		core_ctl_set_limit_cpus(1, 3, 3);
+		core_ctl_set_limit_cpus(2, 1, 1);
+		ret = param_set_uint(buf, kp);
+	} else
+		ret = -EINVAL;
+
+	if (!ret)
+		core_ctl_debug("isolation_feats is change to %d successfully", sport_mode_enable);
+
+	return ret;
+}
+
+static struct kernel_param_ops sport_mode_enable_param_ops = {
+	.set = set_sport_mode_enable,
+	.get = param_get_uint,
+};
+
+param_check_uint(sport_mode_enable, &sport_mode_enable);
+module_param_cb(sport_mode_enable, &sport_mode_enable_param_ops, &sport_mode_enable, 0644);
+MODULE_PARM_DESC(sport_mode_enable, "enable isolation features if needed");
+
 /* ==================== algorithm of core control ======================== */
 
 extern int get_immediate_tslvts1_1_wrap(void); /* CPU7 TS */
@@ -976,7 +917,7 @@ void get_nr_running_big_task(struct cluster_data* cluster)
 	int max_nr[MAX_CLUSTERS] = {0};
 	int i, delta;
 
-	for (i = 0; i < num_clusters; i++) {
+	for (i = 0; i < MAX_CLUSTERS; i++) {
 		sched_get_nr_overutil_avg(i,
 					  &avg_down[i],
 					  &avg_up[i],
@@ -986,7 +927,7 @@ void get_nr_running_big_task(struct cluster_data* cluster)
 		cluster[i].max_nr = max_nr[i];
 	}
 
-	for (i = 0; i < num_clusters; i++) {
+	for (i = 0; i < MAX_CLUSTERS; i++) {
 		/* reset nr_up and nr_down */
 		cluster[i].nr_up = 0;
 		cluster[i].nr_down = 0;
@@ -1020,12 +961,14 @@ void get_nr_running_big_task(struct cluster_data* cluster)
 		cluster[i].nr_down = cluster[i].nr_down < 0 ? 0 : cluster[i].nr_down;
 	}
 
-	for (i = 0; i < num_clusters; i++) {
-		nr_up[i] = cluster[i].nr_up;
-		nr_down[i] = cluster[i].nr_down;
-		max_nr[i] = cluster[i].max_nr;
+	if (debug_enable) {
+		for (i = 0; i < MAX_CLUSTERS; i++) {
+			nr_up[i] = cluster[i].nr_up;
+			nr_down[i] = cluster[i].nr_down;
+			max_nr[i] = cluster[i].max_nr;
+		}
+		trace_core_ctl_update_nr_btask(nr_up, nr_down, max_nr);
 	}
-	trace_core_ctl_update_nr_btask(nr_up, nr_down, max_nr);
 }
 
 /*
@@ -1429,7 +1372,6 @@ static int isolation_cpuhp_state(unsigned int cpu,  bool online)
 	spin_lock_irqsave(&state_lock, flags);
 	if (online) {
 		cluster->active_cpus = get_active_cpu_count(cluster);
-	/* cpu_online() is false */
 	} else {
 		/*
 		 * When CPU is offline, CPU should be un-isolated.
@@ -1437,18 +1379,19 @@ static int isolation_cpuhp_state(unsigned int cpu,  bool online)
 		 * it was isolated by core_ctl.
 		 */
 		if (state->iso_by_core_ctl) {
+			sched_deisolate_cpu_unlocked(cpu);
 			state->iso_by_core_ctl = false;
-			cluster->nr_isolated_cpus--;
 			unisolated = true;
 		}
 		cluster->active_cpus = get_active_cpu_count(cluster);
 	}
 
 	need = apply_limits(cluster, cluster->need_cpus);
+	if (unisolated) {
+		cluster->nr_isolated_cpus--;
+	}
 	do_wakeup = adjustment_possible(cluster, need);
 	spin_unlock_irqrestore(&state_lock, flags);
-	if (unisolated)
-		sched_deisolate_cpu_unlocked(cpu);
 	if (do_wakeup)
 		wake_up_core_ctl_thread(cluster);
 
@@ -1504,7 +1447,7 @@ static int cluster_init(struct hmp_domain *domain)
 	core_ctl_debug("%s: Creating CPU group %d\n", TAG, first_cpu);
 
 	if (num_clusters == MAX_CLUSTERS) {
-		pr_info("%s: Unsupported number of clusters. Only %u supported\n",
+		pr_err("%s: Unsupported number of clusters. Only %u supported\n",
 				TAG, MAX_CLUSTERS);
 		return -EINVAL;
 	}
@@ -1517,7 +1460,7 @@ static int cluster_init(struct hmp_domain *domain)
 	cpumask_copy(&cluster->cpu_mask, mask);
 	cluster->num_cpus = cpumask_weight(mask);
 	if (cluster->num_cpus > MAX_CPUS_PER_CLUSTER) {
-		pr_info("%s: HW configuration not supported\n", TAG);
+		pr_err("%s: HW configuration not supported\n", TAG);
 		return -EINVAL;
 	}
 	cluster->first_cpu = first_cpu;
@@ -1530,7 +1473,10 @@ static int cluster_init(struct hmp_domain *domain)
 	cluster->nr_up = 0;
 	cluster->nr_assist = 0;
 
-	cluster->min_cpus = default_min_cpus[cluster->cluster_id];
+	if (cluster->cluster_id == 1)
+		cluster->min_cpus = 2;
+	else if (cluster->cluster_id == 2)
+		cluster->min_cpus = 0;
 
 	if (cluster->cluster_id ==
 			(arch_get_nr_clusters() - 1))
@@ -1598,7 +1544,7 @@ static int __init core_ctl_init(void)
 	for_each_hmp_domain_L_first(domain) {
 		ret = cluster_init(domain);
 		if (ret)
-			pr_info("%s: unable to create core ctl group: %d\n", TAG, ret);
+			pr_warn("%s: unable to create core ctl group: %d\n", TAG, ret);
 	}
 
 	initialized = true;

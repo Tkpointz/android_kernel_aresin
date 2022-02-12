@@ -406,10 +406,8 @@ wait:
 	policy->transition_task = current;
 
 	spin_unlock(&policy->transition_lock);
-#if defined(CONFIG_MACH_MT6893)
-#else
+
 	arch_set_freq_scale(policy->cpus, freqs->new, policy->cpuinfo.max_freq);
-#endif
 	arch_set_max_freq_scale(policy->cpus, policy->max);
 	arch_set_min_freq_scale(policy->cpus, policy->min);
 	update_cpu_capacity_cpumask(policy->cpus);
@@ -2240,6 +2238,10 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
 	/* adjust if necessary - all reasons */
 	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
 			CPUFREQ_ADJUST, new_policy);
+
+	/* the adjusted frequency should not exceed thermal limit */
+	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
+			CPUFREQ_THERMAL, new_policy);
 
 	/*
 	 * verify the cpu speed can be set within this limit, which might be

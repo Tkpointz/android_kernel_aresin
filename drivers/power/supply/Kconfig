@@ -620,5 +620,6 @@ config CUSTOM_BATTERY_EXTERNAL_CHANNEL
 
 source "drivers/power/supply/mediatek/battery/Kconfig"
 source "drivers/power/supply/mediatek/charger/Kconfig"
+source "drivers/power/supply/ti/Kconfig"
 
 endif # POWER_SUPPLY

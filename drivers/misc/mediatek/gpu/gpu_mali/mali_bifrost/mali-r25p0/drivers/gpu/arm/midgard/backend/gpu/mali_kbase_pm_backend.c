@@ -582,8 +582,6 @@ void kbase_hwaccess_pm_halt(struct kbase_device *kbdev)
 	mutex_lock(&kbdev->pm.lock);
 	kbase_pm_do_poweroff(kbdev);
 	mutex_unlock(&kbdev->pm.lock);
-
-	kbase_pm_wait_for_poweroff_complete(kbdev);
 }
 
 KBASE_EXPORT_TEST_API(kbase_hwaccess_pm_halt);

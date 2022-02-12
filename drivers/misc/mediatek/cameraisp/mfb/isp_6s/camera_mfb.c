@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -849,7 +850,7 @@ void MFBQOS_Update(bool start, unsigned int scen, unsigned long bw)
 		LOG_DBG("MFB total: %ld", qos_total);
 		spin_lock(&(SpinLockMfbPmqos));
 		if (bw != 0)
-			qos_scen[scen] = bw;
+			qos_scen[scen] = qos_scen[scen] + bw;
 		qos_total = qos_total + bw;
 		if (qos_total > 600000000) {
 			spin_unlock(&(SpinLockMfbPmqos));
@@ -871,6 +872,7 @@ void MFBQOS_Update(bool start, unsigned int scen, unsigned long bw)
 		LOG_DBG("MFB total: %ld", qos_total);
 		spin_lock(&(SpinLockMfbPmqos));
 		qos_total = qos_total - qos_scen[scen];
+		qos_scen[scen] = 0;
 		if (qos_total > 600000000) {
 			spin_unlock(&(SpinLockMfbPmqos));
 			pm_qos_update_request(&mfb_pmqos_request,
