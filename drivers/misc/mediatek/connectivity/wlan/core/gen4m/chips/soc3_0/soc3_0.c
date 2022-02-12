@@ -146,8 +146,8 @@ static uint8_t *soc3_0_apucCr4FwName[] = {
 ********************************************************************************
 */
 #if CFG_MTK_ANDROID_EMI
-	phys_addr_t gConEmiPhyBase;
-	unsigned long long gConEmiSize;
+	extern phys_addr_t gConEmiPhyBase;
+	extern unsigned long long gConEmiSize;
 
 #if (CFG_SUPPORT_PRE_ON_PHY_ACTION == 1)
 u_int8_t *gEmiCalResult;
@@ -2641,7 +2641,7 @@ void wlanCoAntVFE28Dis(void)
 
 void wlanCoAntWiFi(void)
 {
-	u_int32 u4GPIO10 = 0x0;
+	u_int32_t u4GPIO10 = 0x0;
 
 	wf_ioremap_read(0x100053a0, &u4GPIO10);
 	u4GPIO10 |= 0x20000;
@@ -2651,7 +2651,7 @@ void wlanCoAntWiFi(void)
 
 void wlanCoAntMD(void)
 {
-	u_int32 u4GPIO10 = 0x0;
+	u_int32_t u4GPIO10 = 0x0;
 
 	wf_ioremap_read(0x100053a0, &u4GPIO10);
 	u4GPIO10 |= 0x10000;

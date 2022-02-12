@@ -5,8 +5,8 @@ MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 ###############################################################################
 # Necessary Check
 
-ifeq ($(AUTOCONF_H),)
-    $(error AUTOCONF_H is not defined)
+ifneq ($(KERNEL_OUT),)
+    ccflags-y += -imacros $(KERNEL_OUT)/include/generated/autoconf.h
 endif
 
 $(warning connac20 bt driver: _MTK_BT_CHIP = $(_MTK_BT_CHIP))
@@ -22,6 +22,8 @@ ifneq ($(filter yes, $(_MTK_PLAT_MT6885_EMULATION)),)
 endif
 endif
 
+ccflags-y += -Wno-error
+
 ifndef TOP
     TOP := $(srctree)/..
 endif
@@ -29,7 +31,7 @@ endif
 USE_DEVICE_NODE := y
 #CUSTOMER_FW_UPDATE := y
 
-ccflags-y += -imacros $(AUTOCONF_H) -DCHIP_IF_BTIF
+ccflags-y += -DCHIP_IF_BTIF
 
 # Customized feature, load 1b fw bin
 #ccflags-y += -D BT_CUS_FEATURE
@@ -59,11 +61,13 @@ endif
 # ---------------------------------------------------
 # Include Path
 # ---------------------------------------------------
-CONN_INFRA_SRC := $(TOP)/vendor/mediatek/kernel_modules/connectivity/conninfra
-WMT_SRC := $(TOP)/vendor/mediatek/kernel_modules/connectivity/common
+CONN_INFRA_SRC := $(srctree)/drivers/misc/mediatek/connectivity/conninfra
+WMT_SRC := $(srctree)/drivers/misc/mediatek/connectivity/common
 BTIF_SRC := $(srctree)/drivers/misc/mediatek/btif
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/connectivity/common
 ccflags-y += -I$(CONN_INFRA_SRC)/include
+ccflags-y += -I$(CONN_INFRA_SRC)/base/include
+ccflags-y += -I$(CONN_INFRA_SRC)/conf/include
 ccflags-y += -I$(CONN_INFRA_SRC)/debug_utility/include
 ccflags-y += -I$(CONN_INFRA_SRC)/debug_utility/
 ifneq ($(CONFIG_MTK_CONNSYS_DEDICATED_LOG_PATH),)
@@ -84,7 +88,7 @@ endif
 # Objects List
 # ---------------------------------------------------
 MODULE_NAME := bt_drv
-obj-m += $(MODULE_NAME).o
+obj-y += $(MODULE_NAME).o
 
 #PLAT_DIR  := plat/$(MTK_PLATFORM)
 

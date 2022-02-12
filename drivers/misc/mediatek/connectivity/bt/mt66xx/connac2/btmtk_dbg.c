@@ -10,6 +10,7 @@
 #include "btmtk_mt66xx_reg.h"
 #include "btmtk_chip_if.h"
 #include "conninfra.h"
+#include "conninfra_conf.h"
 
 /*******************************************************************************
 *				 C O N S T A N T S
@@ -389,6 +390,7 @@ exit:
 	return ret;
 }
 
+/*
 int osal_strtol(const char *str, unsigned int adecimal, long *res)
 {
 	if (sizeof(long) == 4)
@@ -396,6 +398,7 @@ int osal_strtol(const char *str, unsigned int adecimal, long *res)
 	else
 		return kstrtol(str, adecimal, res);
 }
+*/
 
 void bt_dbg_user_trx_cb(char *buf, int len)
 {
