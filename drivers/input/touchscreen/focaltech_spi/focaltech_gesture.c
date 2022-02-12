@@ -52,6 +52,7 @@
 #define KEY_GESTURE_V                           KEY_V
 #define KEY_GESTURE_C                           KEY_C
 #define KEY_GESTURE_Z                           KEY_Z
+#define KEY_GESTURE_DOUBLECLICK                 250
 
 #define GESTURE_LEFT                            0x20
 #define GESTURE_RIGHT                           0x21
@@ -160,7 +161,6 @@ static ssize_t fts_gesture_buf_show(
 	}
 	count += snprintf(buf + count, PAGE_SIZE, "\n");
 	mutex_unlock(&input_dev->mutex);
-
 	return count;
 }
 
@@ -209,10 +209,11 @@ static int fts_create_gesture_sysfs(struct device *dev)
 	return 0;
 }
 
-static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
+static void fts_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 {
+	struct input_dev *input_dev = ts_data->input_dev;
 	int gesture;
-
+        int enable = -1;
 	FTS_DEBUG("gesture_id:0x%x", gesture_id);
 	switch (gesture_id) {
 	case GESTURE_LEFT:
@@ -228,7 +229,7 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
 		gesture = KEY_GESTURE_DOWN;
 		break;
 	case GESTURE_DOUBLECLICK:
-		gesture = KEY_WAKEUP;
+		gesture = KEY_GESTURE_DOUBLECLICK;
 		break;
 	case GESTURE_SINGLETAP:
 		gesture = KEY_GOTO;
@@ -264,6 +265,13 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
 		gesture = -1;
 		break;
 	}
+
+	if (gesture_id == GESTURE_DOUBLECLICK) {
+		enable = ts_data->double_tap_enable;
+        }
+
+        FTS_DEBUG("Gesture Code=%d, enable=%d", gesture, enable);
+
 	/* report event key */
 	if (gesture != -1) {
 		FTS_DEBUG("Gesture Code=%d", gesture);
@@ -320,8 +328,8 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *data)
 	gesture->gesture_id = buf[2];
 	gesture->point_num = buf[3];
 	if (gesture->gesture_id == GESTURE_DOUBLECLICK && !(ts_data->gesture_status & 0x01)) {
-		FTS_INFO("double click is not enabled!");
-		return 1;
+//		FTS_INFO("double click is not enabled!");
+//		return 1;
 	}
 	if (gesture->gesture_id == GESTURE_SINGLETAP && !(ts_data->gesture_status & 0x02)) {
 		FTS_INFO("single tap is not enabled!");
@@ -340,7 +348,7 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *data)
 	}
 
 	/* report gesture to OS */
-	fts_gesture_report(input_dev, gesture->gesture_id);
+	fts_gesture_report(ts_data, gesture->gesture_id);
 	return 0;
 }
 
@@ -438,6 +446,7 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
 	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_V);
 	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_Z);
 	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_C);
+	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_DOUBLECLICK);
 
 	__set_bit(KEY_GESTURE_RIGHT, input_dev->keybit);
 	__set_bit(KEY_GESTURE_LEFT, input_dev->keybit);
@@ -453,11 +462,11 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
 	__set_bit(KEY_GESTURE_V, input_dev->keybit);
 	__set_bit(KEY_GESTURE_C, input_dev->keybit);
 	__set_bit(KEY_GESTURE_Z, input_dev->keybit);
+	__set_bit(KEY_GESTURE_DOUBLECLICK, input_dev->keybit);
 
 	fts_create_gesture_sysfs(ts_data->dev);
 
 	memset(&fts_gesture_data, 0, sizeof(struct fts_gesture_st));
-	ts_data->gesture_mode = FTS_GESTURE_EN;
 
 	FTS_FUNC_EXIT();
 	return 0;
