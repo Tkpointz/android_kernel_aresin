@@ -75,6 +75,7 @@
 #define WRITE_CMD                           0x00
 #define READ_CMD                            (0x80 | DATA_CRC_EN)
 
+#define PAGESIZE 512
 
 /*****************************************************************************
 * Global variable or extern global variabls/functions
@@ -498,6 +499,267 @@ static int fts_input_report_key(struct fts_ts_data *data, int index)
 	return -EINVAL;
 }
 
+void report_trigger_touch(int id, bool down_status, int x, int y)
+{
+    struct input_dev *input_dev = fts_data->input_dev;
+    FTS_DEBUG("report_trigger_touch id=%d, x=%d, y=%d", id, x, y);
+    if (down_status) {
+        input_mt_slot(input_dev, id);
+        input_mt_report_slot_state(input_dev, MT_TOOL_FINGER, 1);
+        input_report_key(input_dev, BTN_TOUCH, 1);
+        input_report_key(input_dev, BTN_TOOL_FINGER, 1);
+        input_report_abs(input_dev, ABS_MT_POSITION_X, x * 16);
+        input_report_abs(input_dev, ABS_MT_POSITION_Y, y * 16);
+    } else {
+        input_mt_slot(input_dev, id);
+        input_mt_report_slot_state(input_dev, MT_TOOL_FINGER, 0);
+	bool trigger_touch = fts_data->left_trigger_enable || fts_data->right_trigger_enable;
+        if (!fts_data->touchs && !trigger_touch) {
+            input_report_key(input_dev, BTN_TOUCH, 0);
+            input_report_key(input_dev, BTN_TOOL_FINGER, 0);
+        }
+    }
+    input_sync(input_dev);
+}
+
+static ssize_t double_tap_enable_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+        int ret = 0;
+        char page[PAGESIZE];
+        ret = sprintf(page, "%d\n", fts_data->double_tap_enable);
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+        return ret;
+}
+
+static ssize_t double_tap_enable_write(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos) \
+{
+        int enabled = 0;
+        char page[PAGESIZE] = {0};
+        copy_from_user(page, user_buf, count);
+        sscanf(page, "%d", &enabled);
+        fts_data->double_tap_enable = enabled > 0 ? 1 : 0;
+        fts_data->gesture_mode = enabled > 0 ? ENABLE : DISABLE;
+        return count;
+}
+
+static const struct file_operations double_tap_enable_proc_fops = {
+    .write = double_tap_enable_write,
+    .read =  double_tap_enable_read,
+    .open = simple_open,
+    .owner = THIS_MODULE,
+};
+
+static ssize_t left_trigger_enable_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+        int ret = 0;
+        char page[PAGESIZE];
+        ret = sprintf(page, "%d\n", fts_data->left_trigger_enable);
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+        return ret;
+}
+
+static ssize_t left_trigger_enable_write(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos) \
+{
+        int enabled = 0;
+        char page[PAGESIZE] = {0};
+        copy_from_user(page, user_buf, count);
+        sscanf(page, "%d", &enabled);
+        fts_data->left_trigger_enable = enabled > 0 ? 1 : 0;
+        report_trigger_touch(8, enabled > 0, fts_data->left_trigger_x, fts_data->left_trigger_y);
+        return count;
+}
+
+static const struct file_operations left_trigger_enable_proc_fops = {
+    .write = left_trigger_enable_write,
+    .read =  left_trigger_enable_read,
+    .open = simple_open,
+    .owner = THIS_MODULE,
+};
+
+static ssize_t right_trigger_enable_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+        int ret = 0;
+        char page[PAGESIZE];
+        ret = sprintf(page, "%d\n", fts_data->right_trigger_enable);
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+        return ret;
+}
+
+static ssize_t right_trigger_enable_write(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos) \
+{
+        int enabled = 0;
+        char page[PAGESIZE] = {0};
+        copy_from_user(page, user_buf, count);
+        sscanf(page, "%d", &enabled);
+        fts_data->right_trigger_enable = enabled > 0 ? 1 : 0;
+        report_trigger_touch(9, enabled > 0, fts_data->right_trigger_x, fts_data->right_trigger_y);
+        return count;
+}
+
+static const struct file_operations right_trigger_enable_proc_fops = {
+    .write = right_trigger_enable_write,
+    .read =  right_trigger_enable_read,
+    .open = simple_open,
+    .owner = THIS_MODULE,
+};
+
+static ssize_t left_trigger_x_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+        int ret = 0;
+        char page[PAGESIZE];
+        ret = sprintf(page, "%d\n", fts_data->left_trigger_x);
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+        return ret;
+}
+
+static ssize_t left_trigger_x_write(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos) \
+{
+        int enabled = 0;
+        char page[PAGESIZE] = {0};
+        copy_from_user(page, user_buf, count);
+        sscanf(page, "%d", &enabled);
+		fts_data->left_trigger_x = enabled;
+        return count;
+}
+
+static const struct file_operations left_trigger_x_proc_fops = {
+    .write = left_trigger_x_write,
+    .read =  left_trigger_x_read,
+    .open = simple_open,
+    .owner = THIS_MODULE,
+};
+
+static ssize_t left_trigger_y_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+        int ret = 0;
+        char page[PAGESIZE];
+        ret = sprintf(page, "%d\n", fts_data->left_trigger_y);
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+        return ret;
+}
+
+static ssize_t left_trigger_y_write(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos) \
+{
+        int enabled = 0;
+        char page[PAGESIZE] = {0};
+        copy_from_user(page, user_buf, count);
+        sscanf(page, "%d", &enabled);
+		fts_data->left_trigger_y = enabled;
+        return count;
+}
+
+static const struct file_operations left_trigger_y_proc_fops = {
+    .write = left_trigger_y_write,
+    .read =  left_trigger_y_read,
+    .open = simple_open,
+    .owner = THIS_MODULE,
+};
+
+static ssize_t right_trigger_x_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+        int ret = 0;
+        char page[PAGESIZE];
+        ret = sprintf(page, "%d\n", fts_data->right_trigger_x);
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+        return ret;
+}
+
+static ssize_t right_trigger_x_write(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos) \
+{
+        int enabled = 0;
+        char page[PAGESIZE] = {0};
+        copy_from_user(page, user_buf, count);
+        sscanf(page, "%d", &enabled);
+		fts_data->right_trigger_x = enabled;
+        return count;
+}
+
+static const struct file_operations right_trigger_x_proc_fops = {
+    .write = right_trigger_x_write,
+    .read =  right_trigger_x_read,
+    .open = simple_open,
+    .owner = THIS_MODULE,
+};
+
+static ssize_t right_trigger_y_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+        int ret = 0;
+        char page[PAGESIZE];
+        ret = sprintf(page, "%d\n", fts_data->right_trigger_y);
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+        return ret;
+}
+
+static ssize_t right_trigger_y_write(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos) \
+{
+        int enabled = 0;
+        char page[PAGESIZE] = {0};
+        copy_from_user(page, user_buf, count);
+        sscanf(page, "%d", &enabled);
+		fts_data->right_trigger_y = enabled;
+        return count;
+}
+
+static const struct file_operations right_trigger_y_proc_fops = {
+    .write = right_trigger_y_write,
+    .read =  right_trigger_y_read,
+    .open = simple_open,
+    .owner = THIS_MODULE,
+};
+
+static int fts_create_tp_proc(struct fts_ts_data *ts_data)
+{
+	struct proc_dir_entry *proc_entry = NULL;
+	struct proc_dir_entry *prEntry_tmp = NULL;
+        int ret = 0;
+
+	proc_entry = proc_mkdir("touchpanel", NULL);
+	if (proc_entry == NULL) {
+		ret = -ENOMEM;
+       	FTS_ERROR("%s: Couldn't create TP proc entry\n", __func__);
+	}
+	    prEntry_tmp = proc_create("double_tap_enable", 0666, proc_entry, &double_tap_enable_proc_fops);
+        if (prEntry_tmp == NULL) {
+                ret = -ENOMEM;
+                FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
+        }
+
+        prEntry_tmp = proc_create("left_trigger_enable", 0666, proc_entry, &left_trigger_enable_proc_fops);
+        if (prEntry_tmp == NULL) {
+                ret = -ENOMEM;
+                FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
+        }
+
+        prEntry_tmp = proc_create("right_trigger_enable", 0666, proc_entry, &right_trigger_enable_proc_fops);
+        if (prEntry_tmp == NULL) {
+                ret = -ENOMEM;
+                FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
+        }
+        prEntry_tmp = proc_create("left_trigger_x", 0666, proc_entry, &left_trigger_x_proc_fops);
+        if (prEntry_tmp == NULL) {
+                ret = -ENOMEM;
+                FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
+        }
+
+        prEntry_tmp = proc_create("left_trigger_y", 0666, proc_entry, &left_trigger_y_proc_fops);
+        if (prEntry_tmp == NULL) {
+                ret = -ENOMEM;
+                FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
+        }
+        prEntry_tmp = proc_create("right_trigger_x", 0666, proc_entry, &right_trigger_x_proc_fops);
+        if (prEntry_tmp == NULL) {
+                ret = -ENOMEM;
+                FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
+        }
+
+        prEntry_tmp = proc_create("right_trigger_y", 0666, proc_entry, &right_trigger_y_proc_fops);
+        if (prEntry_tmp == NULL) {
+                ret = -ENOMEM;
+                FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
+        }
+	return ret;
+}
+
 #if FTS_MT_PROTOCOL_B_EN
 static int fts_input_report_b(struct fts_ts_data *data)
 {
@@ -507,6 +769,7 @@ static int fts_input_report_b(struct fts_ts_data *data)
 	bool va_reported = false;
 	u32 max_touch_num = data->pdata->max_touch_number;
 	struct ts_event *events = data->events;
+	bool trigger_touch = fts_data->left_trigger_enable || fts_data->right_trigger_enable;
 
 	for (i = 0; i < data->touch_point; i++) {
 		if (fts_input_report_key(data, i) == 0) {
@@ -568,11 +831,12 @@ static int fts_input_report_b(struct fts_ts_data *data)
 
 	if (va_reported) {
 		/* touchs==0, there's no point but key */
-		if (EVENT_NO_DOWN(data) || (!touchs)) {
+		if (EVENT_NO_DOWN(data) || (!touchs && !trigger_touch)) {
 			if (data->log_level >= 1) {
 				FTS_DEBUG("[B]Points All Up!");
 			}
-			input_report_key(data->input_dev, BTN_TOUCH, 0);
+			if (!trigger_touch)
+				input_report_key(data->input_dev, BTN_TOUCH, 0);
 		} else {
 			input_report_key(data->input_dev, BTN_TOUCH, 1);
 		}
@@ -667,7 +931,7 @@ static int fts_read_touchdata(struct fts_ts_data *data)
 		FTS_ERROR("touch data(%x) abnormal,ret:%d", buf[1], ret);
 		return -EIO;
 	}
-
+/*
 	data->point_num = buf[FTS_TOUCH_POINT_NUM] & 0x0F;
 	if ((data->point_num == 0x0F) && (buf[2] == 0xFF) && (buf[3] == 0xFF)
 		&& (buf[4] == 0xFF) && (buf[5] == 0xFF) && (buf[6] == 0xFF)) {
@@ -678,7 +942,7 @@ static int fts_read_touchdata(struct fts_ts_data *data)
 		wake_up(&data->wait_update);
 		return -EIO;
 	}
-
+*/
 	if (data->gesture_mode) {
 		ret = fts_gesture_readdata(data, buf + FTS_TOUCH_DATA_LEN);
 		if (0 == ret) {
@@ -2385,6 +2649,11 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
 	if (ret) {
 		FTS_ERROR("create proc node fail");
 	}
+
+        ret = fts_create_tp_proc(ts_data);
+        if (ret) {
+                FTS_ERROR("create proc node fail");
+        }
 
 	ret = fts_create_sysfs(ts_data);
 	if (ret) {
