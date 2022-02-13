@@ -9,15 +9,12 @@ ifneq ($(KERNEL_OUT),)
     ccflags-y += -imacros $(KERNEL_OUT)/include/generated/autoconf.h
 endif
 
-$(warning connac20 bt driver: _MTK_BT_CHIP = $(_MTK_BT_CHIP))
 CONNAC20_CHIPID=$(subst MTK_CONSYS_MT,,$(_MTK_BT_CHIP))
 ccflags-y += -D CONNAC20_CHIPID=$(CONNAC20_CHIPID)
-$(warning connac20 bt driver: CONNAC20_CHIPID = $(CONNAC20_CHIPID))
 
 # only for sw-ready-go
 ifeq ($(_MTK_BT_CHIP), MTK_CONSYS_MT6893)
 ifneq ($(filter yes, $(_MTK_PLAT_MT6885_EMULATION)),)
-    $(warning connac20 bt driver: 6885 emulation is set!)
     ccflags-y += -D CONNAC20_CHIPID=6885
 endif
 endif

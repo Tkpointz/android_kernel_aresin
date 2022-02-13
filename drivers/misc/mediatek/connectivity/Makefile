@@ -44,9 +44,7 @@ endif
     export CONFIG_WLAN_DRV_BUILD_IN=y
 
     ifeq ($(CONFIG_WLAN_DRV_BUILD_IN),y)
-        $(info $$CONFIG_MTK_COMBO_CHIP is [${CONFIG_MTK_COMBO_CHIP}])
         MTK_PLATFORM_ID := $(patsubst CONSYS_%,%,$(subst ",,$(CONFIG_MTK_COMBO_CHIP)))
-        $(info MTK_PLATFORM_ID is [${MTK_PLATFORM_ID}])
 
         ifneq (,$(filter $(CONFIG_MTK_COMBO_CHIP), "CONSYS_6885" "CONSYS_6893"))
             export MTK_COMBO_CHIP=CONNAC2X2_SOC3_0
@@ -73,13 +71,10 @@ endif
         WLAN_IP_SET_2_SERIES := 3967 6785
         WLAN_IP_SET_3_SERIES := 6779 6873 6853
         ifneq ($(filter $(WLAN_IP_SET_3_SERIES), $(WLAN_CHIP_ID)),)
-            $(info WIFI_IP_SET is 3)
             export WIFI_IP_SET=3
         else ifneq ($(filter $(WLAN_IP_SET_2_SERIES), $(WLAN_CHIP_ID)),)
-            $(info WIFI_IP_SET is 2)
             export WIFI_IP_SET=2
         else
-            $(info WIFI_IP_SET is 1)
             export WIFI_IP_SET=1
         endif
 

@@ -3,7 +3,6 @@
 #
 
 #subdir-ccflags-y += -Werror
-$(info ************  drivers/trusty/mtee-kree mk ************)
 
 ccflags-y := -I$(srctree)/drivers/misc/mediatek/geniezone/public -Werror $(ccflags-y)
 
