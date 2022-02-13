@@ -104,7 +104,6 @@ endif
 
 #FDVT 5.1
 ifeq ($(CONFIG_MACH_MT6893),y)
-  $(info FDVT: Drv use 5.1 folder)
   MTKCAM_FDVT_VERSION := 5.1
   MTKCAM_FDVT_PATH := $(MTK_CUSTOM_PATH)/cameraisp/fdvt/5.1
   subdir-ccflags-y += -I$(MTK_CUSTOM_PATH)/cameraisp/fdvt/5.1/inc
