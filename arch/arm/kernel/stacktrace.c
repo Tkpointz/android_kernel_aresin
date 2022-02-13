@@ -52,8 +52,7 @@ int notrace unwind_frame(struct stackframe *frame)
 
 	frame->sp = frame->fp;
 	frame->fp = *(unsigned long *)(fp);
-	frame->pc = frame->lr;
-	frame->lr = *(unsigned long *)(fp + 4);
+	frame->pc = *(unsigned long *)(fp + 4);
 #else
 	/* check current frame pointer is within bounds */
 	if (fp < low + 12 || fp > high - 4)
@@ -64,12 +63,6 @@ int notrace unwind_frame(struct stackframe *frame)
 	frame->sp = *(unsigned long *)(fp - 8);
 	frame->pc = *(unsigned long *)(fp - 4);
 #endif
-
-	if (ALIGN(frame->fp, THREAD_SIZE) != ALIGN(fp, THREAD_SIZE))
-		return -EINVAL;
-
-	if (ALIGN(frame->sp, THREAD_SIZE) != ALIGN(low, THREAD_SIZE))
-		return -EINVAL;
 
 	return 0;
 }
