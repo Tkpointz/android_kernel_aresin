@@ -339,7 +339,7 @@ static inline uint8_t dp_dfp_u_select_mode(
 	struct svdm_mode *remote, *local;
 	int i, j;
 	int match_score, best_match_score = 0;
-	int local_index = -1, remote_index = -1;
+	int __maybe_unused local_index = -1, remote_index = -1;
 
 	local = &svid_data->local_mode;
 	remote = &svid_data->remote_mode;
