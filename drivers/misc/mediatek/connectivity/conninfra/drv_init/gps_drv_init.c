@@ -8,7 +8,7 @@
 #include "gps_drv_init.h"
 
 #ifdef CONFIG_MTK_GPS_SUPPORT
-int __attribute__((weak)) mtk_wcn_gpsdl_drv_init()
+int __attribute__((weak)) mtk_wcn_gpsdl_drv_init(void)
 {
 	pr_debug("No impl. %s\n", __func__);
 	return 0;
