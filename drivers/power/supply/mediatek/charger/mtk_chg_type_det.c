@@ -521,7 +521,7 @@ RETRY_GET_ADC:
 
 	connector_temp = (ntc_table[lower].temp * (res - ntc_table[upper].res) + ntc_table[upper].temp *
 			(ntc_table[lower].res - res)) / (ntc_table[lower].res - ntc_table[upper].res);
-	pr_err("%s: connector_temp:%d\n", __func__, connector_temp);
+	pr_debug("%s: connector_temp:%d\n", __func__, connector_temp);
 
 	return connector_temp;
 }
