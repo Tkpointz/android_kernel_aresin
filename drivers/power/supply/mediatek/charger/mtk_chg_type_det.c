@@ -600,7 +600,7 @@ static int mt_usb_get_property(struct power_supply *psy,
 		val->intval = 5000000;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-		val->intval = battery_get_vbus();
+		val->intval = battery_get_vbus() * 1000;
 		break;
 	case POWER_SUPPLY_PROP_INPUT_CURRENT_NOW:
 		charger_manager_get_ibus(&pval.intval);
