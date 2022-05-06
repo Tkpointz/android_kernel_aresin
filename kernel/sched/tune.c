@@ -665,6 +665,22 @@ int schedtune_cpu_boost(int cpu)
 	return bg->boost_max;
 }
 
+static inline bool schedtune_adj_ta(struct schedtune *st, struct task_struct *p)
+{
+	char name_buf[NAME_MAX + 1];
+	int adj = p->signal->oom_score_adj;
+
+	cgroup_name(st->css.cgroup, name_buf, sizeof(name_buf));
+	if (!strncmp(name_buf, "top-app", strlen("top-app"))) {
+		if ((adj == 0) && !(p->flags & PF_KTHREAD)) {
+			pr_debug("top app is %s\n", p->comm);
+			return true;
+		}
+	}
+
+	return false;
+}
+
 int schedtune_task_boost(struct task_struct *p)
 {
 	struct schedtune *st;
@@ -676,7 +692,7 @@ int schedtune_task_boost(struct task_struct *p)
 	/* Get task boost value */
 	rcu_read_lock();
 	st = task_schedtune(p);
-	task_boost = st->boost;
+	task_boost = st->boost || schedtune_adj_ta(st, p);
 	rcu_read_unlock();
 
 	return task_boost;
