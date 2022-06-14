@@ -1789,33 +1789,14 @@ static void fts_fps_work(struct work_struct *work)
 static int check_fps(unsigned long event, void *data)
 {
 	bool legally = true;
-	int fps = *(int *)data;
+	int fps = 120;
 	u8 cmd;
 	bool suspend = fts_data->suspended;
 	bool gesture_en = fts_data->gesture_mode;
 
 	if (CHANGE_FPS == event) {
-		switch (fps) {
-			case 30:
-				cmd = 0x1e;
-			break;
-			case 60:
-				cmd = 0x3c;
-			break;
-			case 90:
-				cmd = 0x5a;
-			break;
-			case 120:
-				cmd = 0x78;
-			break;
-			case 144:
-				cmd = 0x90;
-			break;
-			default :
-				legally = false;
-				FTS_ERROR("fps value illegal, fps:%d", fps);
-			break;
-		}
+		/* 120 FPS */
+		cmd = 0x78;
 
 		if (legally) {
 			fts_data->fps_cmd = cmd;
