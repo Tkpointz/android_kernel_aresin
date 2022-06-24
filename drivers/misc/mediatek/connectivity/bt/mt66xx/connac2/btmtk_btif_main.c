@@ -792,7 +792,7 @@ int32_t btmtk_btif_open(void)
  * Return Value:
  *     0 if success, otherwise error code
  */
-int32_t btmtk_btif_close()
+int32_t btmtk_btif_close(void)
 {
 	int32_t ret = 0;
 
