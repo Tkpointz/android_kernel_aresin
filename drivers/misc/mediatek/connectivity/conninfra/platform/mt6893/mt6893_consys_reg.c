@@ -71,7 +71,7 @@ struct consys_reg_mng_ops* get_consys_reg_mng_ops(void)
 	return &g_dev_consys_reg_ops;
 }
 
-struct consys_base_addr* get_conn_reg_base_addr()
+struct consys_base_addr* get_conn_reg_base_addr(void)
 {
 	return &conn_reg;
 }
