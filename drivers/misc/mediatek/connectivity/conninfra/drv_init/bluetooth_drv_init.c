@@ -7,7 +7,7 @@
 #include "bluetooth_drv_init.h"
 
 #ifdef CONFIG_MTK_COMBO_BT
-int __attribute__((weak)) mtk_wcn_stpbt_drv_init()
+int __attribute__((weak)) mtk_wcn_stpbt_drv_init(void)
 {
 	pr_debug("Not implement mtk_wcn_stpbt_drv_init\n");
 	return 0;

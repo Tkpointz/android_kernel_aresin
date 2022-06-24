@@ -478,7 +478,7 @@ static void conninfra_register_pmic_callback(void)
 
 
 /************************************************************************/
-static int conninfra_dev_do_drv_init()
+static int conninfra_dev_do_drv_init(void)
 {
 	static int init_done = 0;
 	int iret = 0;
