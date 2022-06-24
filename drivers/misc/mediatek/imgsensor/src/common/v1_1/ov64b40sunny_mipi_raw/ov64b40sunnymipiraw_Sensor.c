@@ -885,7 +885,7 @@ static void capture_setting(kal_uint16 currefps)
 }	/*	preview_setting  */
 
 
-static void normal_video_setting()
+static void normal_video_setting(void)
 {
 	LOG_INF("E!\n");
 
