@@ -2537,7 +2537,6 @@ static void fts_init_xiaomi_touchfeature(struct fts_ts_data *ts_data)
 	xiaomi_touch_interfaces.get_touch_y_resolution = fts_get_y_resolution;
 	fts_init_touchmode_data(ts_data);
 	xiaomitouch_register_modedata(0, &xiaomi_touch_interfaces);
-	fts_report_rate_480(ts_data);
 }
 #endif
 
