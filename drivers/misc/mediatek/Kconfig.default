@@ -9,7 +9,6 @@ config ANDROID_DEFAULT_SETTING
 	select ARM64_PAN
 	select ARMV8_DEPRECATED if COMPAT
 	select ASHMEM
-	select AUDIT
 	select BINFMT_ELF
 	select BINFMT_SCRIPT
 	select BLK_DEV_INITRD
