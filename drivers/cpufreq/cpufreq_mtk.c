@@ -52,6 +52,14 @@ static const struct cpufreq_mtk_topo_config topology = {
 };
 #endif
 
+#if defined(CONFIG_MACH_MT6893)
+static const struct cpufreq_mtk_topo_config topology = {
+    .ltl_cpu_start   = 0,
+    .big_cpu_start   = 4,
+    .prime_cpu_start = 7,
+};
+#endif
+
 void cpufreq_mtk_set_table(int cpu, struct cpufreq_frequency_table *ftbl)
 {
     	if( cpu == topology.prime_cpu_start )
