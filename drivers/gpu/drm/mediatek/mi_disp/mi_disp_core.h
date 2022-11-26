@@ -20,6 +20,8 @@ struct disp_core {
 	bool initialized;
 };
 
+struct device;
+
 int mi_disp_cdev_register(const char *name,
 			const struct file_operations *fops, struct cdev **cdevp);
 void mi_disp_cdev_unregister(struct cdev *cdev);
