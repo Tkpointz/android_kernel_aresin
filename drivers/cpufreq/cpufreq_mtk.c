@@ -21,9 +21,10 @@
 #include <cpu_ctrl.h>
 #include <sched_ctl.h>
 
-#define CLUSTER_NUM 2
+#define CLUSTER_NUM 3
 #define LITTLE 0
 #define BIG 1
+#define PRIME 2
 
 #define cpufreq_mtk_attr(_name)						\
 static struct kobj_attribute _name##_attr =			\
@@ -41,18 +42,21 @@ DEFINE_MUTEX(cpufreq_mtk_mutex);
 struct cpufreq_mtk_topo_config {
     unsigned int ltl_cpu_start;
     unsigned int big_cpu_start;
+    unsigned int prime_cpu_start;
 };
 
 #if defined(CONFIG_MACH_MT6768)
 static const struct cpufreq_mtk_topo_config topology = {
-    .ltl_cpu_start			= 0,
-    .big_cpu_start			= 6,
+    .ltl_cpu_start = 0,
+    .big_cpu_start = 6,
 };
 #endif
 
 void cpufreq_mtk_set_table(int cpu, struct cpufreq_frequency_table *ftbl)
 {
-	if ( cpu == topology.big_cpu_start )
+    	if( cpu == topology.prime_cpu_start )
+        	cpuftbl[PRIME] = ftbl;
+	else if ( cpu == topology.big_cpu_start )
 		cpuftbl[BIG] = ftbl;
 	else if ( cpu == topology.ltl_cpu_start )
 		cpuftbl[LITTLE] = ftbl;
@@ -247,11 +251,71 @@ static ssize_t store_bcluster_max_freq(struct kobject *kobj,
 
 cpufreq_mtk_attr(bcluster_max_freq);
 
+static ssize_t show_pcluster_min_freq(struct kobject *kobj,
+					struct kobj_attribute *attr,
+					char *buf)
+{
+    return sprintf(buf, "%d\n", current_cpu_freq[PRIME].min);
+}
+
+static ssize_t store_pcluster_min_freq(struct kobject *kobj,
+                    struct kobj_attribute *attr, const char *buf,
+                    size_t count)
+{
+    int ret, new_freq;
+
+    ret = sscanf(buf, "%d", &new_freq);
+    if (ret != 1)
+        return -EINVAL;
+
+    mutex_lock(&cpufreq_mtk_mutex);
+    ret = set_min_cpu_freq(PRIME, new_freq);
+    mutex_unlock(&cpufreq_mtk_mutex);
+
+    if (ret < 0)
+        return ret;
+
+    return count;
+}
+
+cpufreq_mtk_attr(pcluster_min_freq);
+
+static ssize_t show_pcluster_max_freq(struct kobject *kobj,
+					struct kobj_attribute *attr,
+					char *buf)
+{
+    return sprintf(buf, "%d\n", current_cpu_freq[PRIME].max);
+}
+
+static ssize_t store_pcluster_max_freq(struct kobject *kobj,
+                    struct kobj_attribute *attr, const char *buf,
+                    size_t count)
+{
+    int ret, new_freq;
+
+    ret = sscanf(buf, "%d", &new_freq);
+    if (ret != 1)
+        return -EINVAL;
+
+    mutex_lock(&cpufreq_mtk_mutex);
+    ret = set_max_cpu_freq(PRIME, new_freq);
+    mutex_unlock(&cpufreq_mtk_mutex);
+
+    if (ret < 0)
+        return ret;
+
+    return count;
+}
+
+cpufreq_mtk_attr(pcluster_max_freq);
+
 static struct attribute *mtk_param_attributes[] = {
     &lcluster_min_freq_attr.attr,
     &lcluster_max_freq_attr.attr,
     &bcluster_min_freq_attr.attr,
     &bcluster_max_freq_attr.attr,
+    &pcluster_min_freq_attr.attr,
+    &pcluster_max_freq_attr.attr,
     NULL,
 };
 
@@ -274,8 +338,10 @@ static int __init cpufreq_mtk_init(void)
 
     current_cpu_freq[LITTLE].min = -1;
     current_cpu_freq[BIG].min = -1;
+    current_cpu_freq[PRIME].min = -1;
     current_cpu_freq[LITTLE].max = -1;
     current_cpu_freq[BIG].max = -1;
+    current_cpu_freq[PRIME].max = -1;
 
     if (!cpufreq_global_kobject) {
         pr_err("[%s] !cpufreq_global_kobject\n", __func__);
