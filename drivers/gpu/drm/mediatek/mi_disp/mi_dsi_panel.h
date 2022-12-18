@@ -127,6 +127,7 @@ struct mi_dsi_panel_cfg {
 	 */
 	u32 doze_brightness_backup;
 
+	u32 hbm_status;
 	bool hbm_51_ctl_flag;
 	int hbm_on_51_index;
 	int hbm_off_51_index;
@@ -319,6 +320,8 @@ int mi_dsi_panel_set_doze_brightness(struct mtk_dsi *dsi,
 			int doze_brightness);
 int mi_dsi_panel_get_doze_brightness(struct mtk_dsi *dsi,
 			u32 *doze_brightness);
+int mi_dsi_panel_get_hbm_status(struct mtk_dsi *dsi,
+			u32 *hbm_status);
 int mi_dsi_panel_set_brightness(struct mtk_dsi *dsi,
 			int brightness);
 int mi_dsi_panel_get_brightness(struct mtk_dsi *dsi,

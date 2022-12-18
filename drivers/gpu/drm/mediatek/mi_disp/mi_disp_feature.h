@@ -103,6 +103,7 @@ enum disp_feature_sysfs {
 	MI_SYSFS_DOZE_BRIGHTNESS = 2,
 	MI_SYSFS_BRIGHTNESS_CLONE = 3,
 	MI_SYSFS_DC = 4,
+	MI_SYSFS_HBM = 5,
 	MI_SYSFS_MAX,
 };
 
