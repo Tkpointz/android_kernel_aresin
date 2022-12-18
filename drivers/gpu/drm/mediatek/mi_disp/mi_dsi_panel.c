@@ -954,6 +954,20 @@ int mi_dsi_panel_get_doze_brightness(struct mtk_dsi *dsi,
 	return 0;
 }
 
+int mi_dsi_panel_get_hbm_status(struct mtk_dsi *dsi,
+			u32 *hbm_status)
+{
+	if(!dsi) {
+		DISP_ERROR("Invalid params\n");
+		return -EINVAL;
+	}
+
+	mutex_lock(&dsi->dsi_lock);
+	*hbm_status = dsi->mi_cfg.feature_val[01];
+	mutex_unlock(&dsi->dsi_lock);
+	return 0;
+}
+
 int mi_dsi_panel_set_brightness(struct mtk_dsi *dsi,
 			int brightness)
 {

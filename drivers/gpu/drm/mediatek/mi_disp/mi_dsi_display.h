@@ -55,6 +55,9 @@ int mi_dsi_display_set_doze_brightness(void *display, int doze_brightness);
 int mi_dsi_display_get_doze_brightness(void *display,
 			u32 *brightness);
 
+int mi_dsi_display_get_hbm_status(void *display,
+			u32 *hbm_status);
+
 int mi_dsi_display_set_brightness(void *display, int doze_brightness);
 
 int mi_dsi_display_get_brightness(void *display,

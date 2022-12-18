@@ -206,6 +206,20 @@ int mi_dsi_display_get_doze_brightness(void *display,
 				doze_brightness);
 }
 
+int mi_dsi_display_get_hbm_status(void *display,
+			u32 *hbm_status)
+{
+	struct mtk_dsi *dsi_display = (struct mtk_dsi *)display;
+
+	if (!dsi_display) {
+		DISP_ERROR("Invalid display ptr\n");
+		return -EINVAL;
+	}
+
+	return mi_dsi_panel_get_hbm_status(dsi_display,
+				hbm_status);
+}
+
 int mi_dsi_display_set_brightness(void *display, int brightness)
 {
 	struct mtk_dsi *dsi_display = (struct mtk_dsi *)display;

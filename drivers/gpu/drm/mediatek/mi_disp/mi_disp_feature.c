@@ -311,6 +311,9 @@ void mi_disp_feature_sysfs_notify(int sysfs_node)
 		case MI_SYSFS_DC:
 			sysfs_notify(&g_disp_feature->pdev->kobj, NULL, "dc_status");
 			break;
+		case MI_SYSFS_HBM:
+			sysfs_notify(&g_disp_feature->pdev->kobj, NULL, "hbm_status");
+			break;
 		default:
 			pr_err("Invalid params\n");
 			break;
@@ -499,6 +502,18 @@ static ssize_t dc_status_show(struct device *device,
 	struct mtk_dsi *display = dev->d_display[DSI_PRIMARY].display;
 	return snprintf(buf, PAGE_SIZE, "%d\n", display->conn.dc_status);
 }
+
+static ssize_t hbm_status_show(struct device *device,
+			   struct device_attribute *attr,
+			   char *buf)
+{
+	struct disp_feature *dev = to_disp_feature(device);
+	struct mtk_dsi *display = dev->d_display[DSI_PRIMARY].display;
+	int hbm_status=0;
+	
+	mi_dsi_display_get_hbm_status(display, &hbm_status);
+	return snprintf(buf, PAGE_SIZE, "%d\n", hbm_status);
+}
 static DEVICE_ATTR_RW(disp_param);
 static DEVICE_ATTR_RW(mipi_reg);
 static DEVICE_ATTR_RO(oled_pmic_id);
@@ -509,6 +524,7 @@ static DEVICE_ATTR_RW(doze_brightness);
 static DEVICE_ATTR_RO(gamma_test);
 static DEVICE_ATTR_RW(brightness_clone);
 static DEVICE_ATTR_RW(dc_status);
+static DEVICE_ATTR_RO(hbm_status);
 
 static struct attribute *disp_feature_attrs[] = {
 	&dev_attr_disp_param.attr,
@@ -521,6 +537,7 @@ static struct attribute *disp_feature_attrs[] = {
 	&dev_attr_gamma_test.attr,
 	&dev_attr_brightness_clone.attr,
 	&dev_attr_dc_status.attr,
+	&dev_attr_hbm_status.attr,
 	NULL
 };
 
