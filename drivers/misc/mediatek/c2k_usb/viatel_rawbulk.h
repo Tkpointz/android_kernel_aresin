@@ -77,10 +77,10 @@ struct rawbulk_function {
 	/* Controls */
 	spinlock_t lock;
 	int enable:1;
-	int activated:1;	/* set when usb enabled */
+	unsigned int activated:1;	/* set when usb enabled */
 	int tty_opened:1;
 
-	int initialized:1;	/* init-flag for activator worker */
+	unsigned int initialized:1;	/* init-flag for activator worker */
 	struct work_struct activator;	/* asynic transaction starter */
 
 	struct wakeup_source keep_awake;
