@@ -910,7 +910,7 @@ int sd_runtime_autok_merge(struct msdc_host *host)
 	u8 *res;
 
 	for (merge_count = 1; merge_count < AUTOK_VCORE_NUM; merge_count++) {
-		if (host->autok_res[merge_count][0] == NULL) {
+		if (host->autok_res[merge_count][0] == 0) {
 			pr_info("[AUTOK]merge_count = %d\n", merge_count+1);
 			res = host->autok_res[merge_count];
 			ret = autok_execute_tuning(host, res);
@@ -934,7 +934,7 @@ int sd_runtime_autok_merge(struct msdc_host *host)
 		pr_info("[AUTOK]No need change para when dvfs\n");
 	} else {
 		/* merge fail clear host->autok_res[merge_count][0] */
-		host->autok_res[merge_count][0] = NULL;
+		host->autok_res[merge_count][0] = 0;
 		autok_tuning_parameter_init(host,
 			host->autok_res[AUTOK_VCORE_LEVEL0]);
 	}
