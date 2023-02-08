@@ -89,6 +89,7 @@ static int fts_ts_resume(struct device *dev);
 #ifdef FTS_XIAOMI_TOUCHFEATURE
 static int fts_read_palm_data(void);
 #endif
+static int fts_set_cur_value(int mode, int value);
 
 /*****************************************************************************
 *  Name: fts_wait_tp_to_valid
@@ -712,6 +713,37 @@ static const struct file_operations right_trigger_y_proc_fops = {
     .owner = THIS_MODULE,
 };
 
+static ssize_t touch_game_mode_read(struct file *file, char __user *user_buf, size_t count, loff_t *ppos)
+{
+        int ret = 0;
+        char page[PAGESIZE];
+        ret = sprintf(page, "%d\n", fts_data->gamemode_enabled);
+        ret = simple_read_from_buffer(user_buf, count, ppos, page, strlen(page));
+        return ret;
+}
+
+static ssize_t touch_game_mode_write(struct file *file, const char __user *user_buf, size_t count, loff_t *ppos) \
+{
+        int enabled = 0;
+        char page[PAGESIZE] = {0};
+        copy_from_user(page, user_buf, count);
+        sscanf(page, "%d", &enabled);
+	if (enabled) {
+		fts_set_cur_value(0, 1);
+	} else {
+		fts_set_cur_value(0, 0);
+		fts_data->gamemode_enabled = false;
+	}
+        return count;
+}
+
+static const struct file_operations touch_game_mode_proc_fops = {
+    .write = touch_game_mode_write,
+    .read =  touch_game_mode_read,
+    .open = simple_open,
+    .owner = THIS_MODULE,
+};
+
 static int fts_create_tp_proc(struct fts_ts_data *ts_data)
 {
 	struct proc_dir_entry *proc_entry = NULL;
@@ -758,6 +790,12 @@ static int fts_create_tp_proc(struct fts_ts_data *ts_data)
         }
 
         prEntry_tmp = proc_create("right_trigger_y", 0666, proc_entry, &right_trigger_y_proc_fops);
+        if (prEntry_tmp == NULL) {
+                ret = -ENOMEM;
+                FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
+        }
+
+	prEntry_tmp = proc_create("touch_game_mode", 0666, proc_entry, &touch_game_mode_proc_fops);
         if (prEntry_tmp == NULL) {
                 ret = -ENOMEM;
                 FTS_DEBUG("%s: Couldn't create proc entry, %d\n", __func__, __LINE__);
