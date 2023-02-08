@@ -108,7 +108,7 @@
 #define FTS_LOCKDOWN_INFO_SIZE                      8
 
 #define FTS_XIAOMI_TOUCHFEATURE
-#define ALWAYS_480
+#define GAME_480
 
 /*****************************************************************************
 *  Alternative mode (When something goes wrong, the modules may be able to solve the problem.)
