@@ -22,6 +22,8 @@
 #include <asm/unaligned.h>
 #include "fat.h"
 
+#include <mt-plat/mtk_blocktag.h>
+
 #ifndef CONFIG_FAT_DEFAULT_IOCHARSET
 /* if user don't select VFAT, this is undefined. */
 #define CONFIG_FAT_DEFAULT_IOCHARSET	""
