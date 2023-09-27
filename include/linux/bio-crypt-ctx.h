@@ -43,7 +43,12 @@ struct blk_crypto_key {
 	unsigned int data_unit_size;
 	unsigned int data_unit_size_bits;
 	unsigned int size;
-
+	/*
+	 * Seems no need to add it, but for coding safety.
+	 * BOOL should be more sensible, but maybe needs
+	 * size in somewhere in future.
+	 */
+	unsigned int hie_duint_size;
 	/*
 	 * Hack to avoid breaking KMI: pack both hash and dun_bytes into the
 	 * hash field...
@@ -104,6 +109,9 @@ struct bio_crypt_ctx {
 	 * with keyslot.
 	 */
 	struct keyslot_manager		*bc_ksm;
+
+	/* Compatibility for OTA from HIE + EXT4 */
+	bool hie_ext4;
 };
 
 int bio_crypt_ctx_init(void);
@@ -141,6 +149,7 @@ int bio_crypt_ctx_acquire_keyslot(struct bio_crypt_ctx *bc,
 
 struct request;
 bool bio_crypt_should_process(struct request *rq);
+extern int fscrypt_force_iv_ino_lblk_32(void);
 
 static inline bool bio_crypt_dun_is_contiguous(const struct bio_crypt_ctx *bc,
 					       unsigned int bytes,
@@ -148,6 +157,13 @@ static inline bool bio_crypt_dun_is_contiguous(const struct bio_crypt_ctx *bc,
 {
 	int i = 0;
 	unsigned int inc = bytes >> bc->bc_key->data_unit_size_bits;
+
+	/* eMMC + F2FS OTA only */
+#ifdef CONFIG_MMC_CRYPTO_LEGACY
+	if (fscrypt_force_iv_ino_lblk_32() && !bc->hie_ext4 &&
+		(bc->bc_key->hie_duint_size != 4096))
+		inc = inc * 8;
+#endif
 
 	while (i < BLK_CRYPTO_DUN_ARRAY_SIZE) {
 		if (bc->bc_dun[i] + inc != next_dun[i])
@@ -175,12 +191,21 @@ static inline void bio_crypt_dun_increment(u64 dun[BLK_CRYPTO_DUN_ARRAY_SIZE],
 static inline void bio_crypt_advance(struct bio *bio, unsigned int bytes)
 {
 	struct bio_crypt_ctx *bc = bio->bi_crypt_context;
+	unsigned int inc;
 
 	if (!bc)
 		return;
 
-	bio_crypt_dun_increment(bc->bc_dun,
-				bytes >> bc->bc_key->data_unit_size_bits);
+	inc = bytes >> bc->bc_key->data_unit_size_bits;
+
+	/* eMMC + F2FS OTA only */
+#ifdef CONFIG_MMC_CRYPTO_LEGACY
+	if (fscrypt_force_iv_ino_lblk_32() && !bc->hie_ext4 &&
+		(bc->bc_key->hie_duint_size != 4096))
+		inc = inc * 8;
+#endif
+
+	bio_crypt_dun_increment(bc->bc_dun, inc);
 }
 
 bool bio_crypt_ctx_compatible(struct bio *b_1, struct bio *b_2);

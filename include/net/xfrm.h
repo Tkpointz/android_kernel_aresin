@@ -144,7 +144,6 @@ struct xfrm_state {
 
 	refcount_t		refcnt;
 	spinlock_t		lock;
-
 	struct xfrm_id		id;
 	struct xfrm_selector	sel;
 	struct xfrm_mark	mark;

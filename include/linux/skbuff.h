@@ -41,6 +41,10 @@
 #include <linux/if_packet.h>
 #include <net/flow.h>
 
+
+#define NET_RX_BATCH_SOLUTION 1
+
+
 /* The interface for checksum offload between the stack and networking drivers
  * is as follows...
  *
@@ -570,6 +574,8 @@ enum {
 	SKB_GSO_ESP = 1 << 15,
 
 	SKB_GSO_UDP = 1 << 16,
+
+	SKB_GSO_UDP_L4 = 1 << 17,
 };
 
 #if BITS_PER_LONG > 32
@@ -672,7 +678,9 @@ struct sk_buff {
 			};
 		};
 		struct rb_node		rbnode; /* used in netem, ip4 defrag, and tcp stack */
+#ifndef NET_RX_BATCH_SOLUTION
 		struct list_head	list;
+#endif
 	};
 
 	union {
@@ -691,7 +699,9 @@ struct sk_buff {
 	 * first. This is owned by whoever has the skb queued ATM.
 	 */
 	char			cb[48] __aligned(8);
-
+#ifdef NET_RX_BATCH_SOLUTION
+	struct list_head list;
+#endif
 	unsigned long		_skb_refdst;
 	void			(*destructor)(struct sk_buff *skb);
 #ifdef CONFIG_XFRM
@@ -1335,6 +1345,17 @@ static inline void skb_zcopy_abort(struct sk_buff *skb)
 	}
 }
 
+static inline void skb_mark_not_on_list(struct sk_buff *skb)
+{
+	skb->next = NULL;
+}
+
+static inline void skb_list_del_init(struct sk_buff *skb)
+{
+	__list_del_entry(&skb->list);
+	skb_mark_not_on_list(skb);
+}
+
 /**
  *	skb_queue_empty - check if a queue is empty
  *	@list: queue head
@@ -1733,7 +1754,8 @@ static inline void __skb_insert(struct sk_buff *newsk,
 	list->qlen++;
 }
 
-static inline void __skb_queue_splice(const struct sk_buff_head *list,
+static inline void __attribute__((no_sanitize("object-size")))
+	__skb_queue_splice(const struct sk_buff_head *list,
 				      struct sk_buff *prev,
 				      struct sk_buff *next)
 {
@@ -1831,7 +1853,8 @@ static inline void __skb_queue_after(struct sk_buff_head *list,
 void skb_append(struct sk_buff *old, struct sk_buff *newsk,
 		struct sk_buff_head *list);
 
-static inline void __skb_queue_before(struct sk_buff_head *list,
+static inline void __attribute__((no_sanitize("object-size")))
+	__skb_queue_before(struct sk_buff_head *list,
 				      struct sk_buff *next,
 				      struct sk_buff *newsk)
 {
