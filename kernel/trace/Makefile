@@ -38,6 +38,7 @@ obj-$(CONFIG_FUNCTION_TRACER) += trace_functions.o
 obj-$(CONFIG_PREEMPTIRQ_EVENTS) += trace_irqsoff.o
 obj-$(CONFIG_IRQSOFF_TRACER) += trace_irqsoff.o
 obj-$(CONFIG_PREEMPT_TRACER) += trace_irqsoff.o
+obj-$(CONFIG_TRACE_IRQFLAGS) += trace_irqsoff.o
 obj-$(CONFIG_SCHED_TRACER) += trace_sched_wakeup.o
 obj-$(CONFIG_HWLAT_TRACER) += trace_hwlat.o
 obj-$(CONFIG_NOP_TRACER) += trace_nop.o
@@ -74,3 +75,5 @@ obj-$(CONFIG_GPU_TRACEPOINTS) += gpu-traces.o
 obj-$(CONFIG_TRACEPOINT_BENCHMARK) += trace_benchmark.o
 
 libftrace-y := ftrace.o
+
+obj-$(CONFIG_TRACING) += mtk_trace.o
