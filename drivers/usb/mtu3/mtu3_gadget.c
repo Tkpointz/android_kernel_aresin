@@ -17,6 +17,11 @@
  */
 
 #include "mtu3.h"
+#include "mtu3_dr.h"
+#include <linux/usb/composite.h>
+#ifdef CONFIG_USB_MTU3_PLAT_PHONE
+#include <mt-plat/mtk_boot.h>
+#endif
 
 void mtu3_req_complete(struct mtu3_ep *mep,
 		     struct usb_request *req, int status)
@@ -34,7 +39,6 @@ __acquires(mep->mtu->lock)
 
 	mtu = mreq->mtu;
 	mep->busy = 1;
-	spin_unlock(&mtu->lock);
 
 	/* ep0 makes use of PIO, needn't unmap it */
 	if (mep->epnum)
@@ -42,6 +46,8 @@ __acquires(mep->mtu->lock)
 
 	dev_dbg(mtu->dev, "%s complete req: %p, sts %d, %d/%d\n", mep->name,
 		req, req->status, mreq->request.actual, mreq->request.length);
+
+	spin_unlock(&mtu->lock);
 
 	usb_gadget_giveback_request(&mep->ep, &mreq->request);
 
@@ -68,6 +74,77 @@ static void nuke(struct mtu3_ep *mep, const int status)
 					struct mtu3_request, list);
 		mtu3_req_complete(mep, &mreq->request, status);
 	}
+}
+
+void mtu3_nuke_all_ep(struct mtu3 *mtu)
+{
+	int i;
+
+	nuke(mtu->ep0, -ESHUTDOWN);
+	for (i = 1; i < mtu->num_eps; i++) {
+		nuke(mtu->in_eps + i, -ESHUTDOWN);
+		nuke(mtu->out_eps + i, -ESHUTDOWN);
+	}
+}
+
+static int is_db_ok(struct mtu3_ep *mep)
+{
+	struct mtu3 *mtu = mep->mtu;
+	struct usb_composite_dev *cdev = (mtu->g).ep0->driver_data;
+	struct usb_configuration *c = cdev->config;
+	struct usb_gadget *gadget = &(mtu->g);
+	int tmp;
+	int ret = 1;
+
+	for (tmp = 0; tmp < MAX_CONFIG_INTERFACES; tmp++) {
+		struct usb_function *f = c->interface[tmp];
+		struct usb_descriptor_header **descriptors;
+
+		if (!f)
+			break;
+
+		pr_info("Ifc name=%s\n", f->name);
+
+		switch (gadget->speed) {
+		case USB_SPEED_SUPER:
+			descriptors = f->ss_descriptors;
+			break;
+		case USB_SPEED_HIGH:
+			descriptors = f->hs_descriptors;
+			break;
+		default:
+			descriptors = f->fs_descriptors;
+		}
+
+		for (; *descriptors; ++descriptors) {
+			struct usb_endpoint_descriptor *ep;
+			int is_in;
+			int epnum;
+
+			if ((*descriptors)->bDescriptorType != USB_DT_ENDPOINT)
+				continue;
+
+			ep = (struct usb_endpoint_descriptor *)*descriptors;
+
+			is_in = (ep->bEndpointAddress & 0x80) >> 7;
+			epnum = (ep->bEndpointAddress & 0x0f);
+
+			/*
+			 * Under saving mode, ALL EPs will be set
+			 * as Single Buffer
+			 */
+
+			/* ep must be matched */
+			if (ep->bEndpointAddress == (mep->ep).address) {
+
+				if (gadget->speed == USB_SPEED_SUPER)
+					ret = 0;
+				goto end;
+			}
+		}
+	}
+end:
+	return ret;
 }
 
 static int mtu3_ep_enable(struct mtu3_ep *mep)
@@ -121,6 +198,19 @@ static int mtu3_ep_enable(struct mtu3_ep *mep)
 
 	/* slot mainly affects bulk/isoc transfer, so ignore int */
 	mep->slot = usb_endpoint_xfer_int(desc) ? 0 : mtu->slot;
+
+	#ifdef CONFIG_USB_MTU3_PLAT_PHONE
+	if (is_saving_mode()) {
+		if (is_db_ok(mep)) {
+			dev_info(mtu->dev, "Saving mode, but EP%d supports DBBUF\n",
+				mep->epnum);
+		} else {
+			dev_info(mtu->dev, "EP%d supports single buffer\n",
+				mep->epnum);
+			mep->slot = 0;
+		}
+	}
+	#endif
 
 	ret = mtu3_config_ep(mtu, mep, interval, burst, mult);
 	if (ret < 0)
@@ -256,7 +346,13 @@ struct usb_request *mtu3_alloc_request(struct usb_ep *ep, gfp_t gfp_flags)
 
 void mtu3_free_request(struct usb_ep *ep, struct usb_request *req)
 {
+	struct mtu3_ep *mep = to_mtu3_ep(ep);
+	struct mtu3 *mtu = mep->mtu;
+	unsigned long flags;
+
+	spin_lock_irqsave(&mtu->lock, flags);
 	kfree(to_mtu3_request(req));
+	spin_unlock_irqrestore(&mtu->lock, flags);
 }
 
 static int mtu3_gadget_queue(struct usb_ep *ep,
@@ -478,12 +574,28 @@ static int mtu3_gadget_set_self_powered(struct usb_gadget *gadget,
 	return 0;
 }
 
+static int usb_rdy;		/* default value 0 */
+
+void set_usb_rdy(void)
+{
+	pr_info("set usb_rdy, wake up bat\n");
+	usb_rdy = 1;
+}
+
+bool is_usb_rdy(void)
+{
+	if (usb_rdy)
+		return true;
+	else
+		return false;
+}
+
 static int mtu3_gadget_pullup(struct usb_gadget *gadget, int is_on)
 {
 	struct mtu3 *mtu = gadget_to_mtu3(gadget);
 	unsigned long flags;
 
-	dev_dbg(mtu->dev, "%s (%s) for %sactive device\n", __func__,
+	dev_info(mtu->dev, "%s (%s) for %sactive device\n", __func__,
 		is_on ? "on" : "off", mtu->is_active ? "" : "in");
 
 	/* we'd rather not pullup unless the device is active. */
@@ -496,9 +608,26 @@ static int mtu3_gadget_pullup(struct usb_gadget *gadget, int is_on)
 	} else if (is_on != mtu->softconnect) {
 		mtu->softconnect = is_on;
 		mtu3_dev_on_off(mtu, is_on);
+
+		if (!is_on)
+			mtu3_nuke_all_ep(mtu);
 	}
 
+	if (is_usb_rdy() == false && is_on)
+		set_usb_rdy();
+
 	spin_unlock_irqrestore(&mtu->lock, flags);
+	#ifdef CONFIG_USB_MTU3_PLAT_PHONE
+	/* Trigger connection when force on*/
+	if ((mtu3_cable_mode == CABLE_MODE_FORCEON) ||
+		(get_boot_mode() == META_BOOT) ||
+		(get_boot_mode() == ADVMETA_BOOT)) {
+		dev_info(mtu->dev, "%s CABLE_MODE_FORCEON or META_MODE\n",
+			__func__);
+		ssusb_set_mailbox(&mtu->ssusb->otg_switch,
+			MTU3_VBUS_VALID);
+	}
+	#endif
 
 	return 0;
 }
@@ -535,6 +664,8 @@ static void stop_activity(struct mtu3 *mtu)
 	struct usb_gadget_driver *driver = mtu->gadget_driver;
 	int i;
 
+	dev_info(mtu->dev, "%s\n", __func__);
+
 	/* don't disconnect if it's not connected */
 	if (mtu->g.speed == USB_SPEED_UNKNOWN)
 		driver = NULL;
@@ -551,12 +682,7 @@ static void stop_activity(struct mtu3 *mtu)
 	 * killing any outstanding requests will quiesce the driver;
 	 * then report disconnect
 	 */
-	nuke(mtu->ep0, -ESHUTDOWN);
-	for (i = 1; i < mtu->num_eps; i++) {
-		nuke(mtu->in_eps + i, -ESHUTDOWN);
-		nuke(mtu->out_eps + i, -ESHUTDOWN);
-	}
-
+	mtu3_nuke_all_ep(mtu);
 	if (driver) {
 		spin_unlock(&mtu->lock);
 		driver->disconnect(&mtu->g);
@@ -592,6 +718,21 @@ static const struct usb_gadget_ops mtu3_gadget_ops = {
 	.udc_start = mtu3_gadget_start,
 	.udc_stop = mtu3_gadget_stop,
 };
+
+static void mtu3_state_reset(struct mtu3 *mtu)
+{
+	struct mtu3_ep *mep;
+
+	mtu->address = 0;
+	mtu->ep0_state = MU3D_EP0_STATE_SETUP;
+	mtu->may_wakeup = 0;
+
+	mep = mtu->ep0;
+	if (!list_empty(&mep->req_list)) {
+		pr_info("%s reinit EP[0] req_list\n", __func__);
+		INIT_LIST_HEAD(&mep->req_list);
+	}
+}
 
 static void init_hw_ep(struct mtu3 *mtu, struct mtu3_ep *mep,
 		u32 epnum, u32 is_in)
@@ -663,9 +804,10 @@ int mtu3_gadget_setup(struct mtu3 *mtu)
 	mtu->g.sg_supported = 0;
 	mtu->g.name = MTU3_DRIVER_NAME;
 	mtu->is_active = 0;
-	mtu->delayed_status = false;
 
 	mtu3_gadget_init_eps(mtu);
+
+	mtu->g.quirk_ep_out_aligned_size = true;
 
 	ret = usb_add_gadget_udc(mtu->dev, &mtu->g);
 	if (ret) {
@@ -696,7 +838,7 @@ void mtu3_gadget_resume(struct mtu3 *mtu)
 /* called when SOF packets stop for 3+ msec or enters U3 */
 void mtu3_gadget_suspend(struct mtu3 *mtu)
 {
-	dev_dbg(mtu->dev, "gadget SUSPEND\n");
+	dev_info(mtu->dev, "gadget SUSPEND\n");
 	if (mtu->gadget_driver && mtu->gadget_driver->suspend) {
 		spin_unlock(&mtu->lock);
 		mtu->gadget_driver->suspend(&mtu->g);
@@ -707,28 +849,31 @@ void mtu3_gadget_suspend(struct mtu3 *mtu)
 /* called when VBUS drops below session threshold, and in other cases */
 void mtu3_gadget_disconnect(struct mtu3 *mtu)
 {
-	dev_dbg(mtu->dev, "gadget DISCONNECT\n");
+	struct usb_gadget_driver *driver;
+
+	dev_info(mtu->dev, "gadget DISCONNECT\n");
 	if (mtu->gadget_driver && mtu->gadget_driver->disconnect) {
+		driver = mtu->gadget_driver;
 		spin_unlock(&mtu->lock);
-		mtu->gadget_driver->disconnect(&mtu->g);
+		/*
+		 * avoid kernel panic because mtu3_gadget_stop() assigned NULL
+		 * to mtu->gadget_driver.
+		 */
+		driver->disconnect(&mtu->g);
 		spin_lock(&mtu->lock);
 	}
 
+	mtu3_state_reset(mtu);
 	usb_gadget_set_state(&mtu->g, USB_STATE_NOTATTACHED);
 }
 
 void mtu3_gadget_reset(struct mtu3 *mtu)
 {
-	dev_dbg(mtu->dev, "gadget RESET\n");
+	dev_info(mtu->dev, "gadget RESET\n");
 
 	/* report disconnect, if we didn't flush EP state */
 	if (mtu->g.speed != USB_SPEED_UNKNOWN)
 		mtu3_gadget_disconnect(mtu);
-
-	mtu->address = 0;
-	mtu->ep0_state = MU3D_EP0_STATE_SETUP;
-	mtu->may_wakeup = 0;
-	mtu->u1_enable = 0;
-	mtu->u2_enable = 0;
-	mtu->delayed_status = false;
+	else
+		mtu3_state_reset(mtu);
 }

@@ -38,6 +38,7 @@ config SCSI_UFSHCD
 	select PM_DEVFREQ
 	select DEVFREQ_GOV_SIMPLE_ONDEMAND
 	select NLS
+	select RPMB
 	---help---
 	This selects the support for UFS devices in Linux, say Y and make
 	  sure that you know the name of your UFS host adapter (the card
@@ -100,6 +101,89 @@ config SCSI_UFS_QCOM
 
 	  Select this if you have UFS controller on QCOM chipset.
 	  If unsure, say N.
+
+config MTK_UFS_SUPPORT
+	bool "MTK specific hooks to UFS controller platform driver"
+	depends on SCSI_UFSHCD_PLATFORM
+	select CRC16
+	default n
+	---help---
+	  This selects MediaTek specific hooks to UFS controller platform
+	  driver and enable embedded UFS as default booting device on
+	  MediaTek platforms.
+
+	  Say Y if you want to use embedded UFS as default booting device.
+
+	  If unsure, say N.
+
+config MTK_UFS_BLOCK_IO_LOG
+	bool "UFS Block IO log"
+	depends on MTK_BLOCK_TAG && MTK_UFS_SUPPORT
+	default y
+	---help---
+	  Enable IO trace for performance analysis and application access
+	  pattern study.
+	  Say Y if you want to have IO trace.
+
+	  If unsure, say N
+
+config UFSFEATURE
+	bool "UFS feature activate"
+	depends on SCSI_UFSHCD
+	---help---
+	UFS feature activate such as hpb, tw and etc.
+
+config UFSHPB
+	bool "UFS Host Performance Booster support"
+	depends on SCSI_UFSHCD && UFSFEATURE
+	---help---
+	UFS HPB Feature Enable
+
+config HPB_DEBUG
+	bool "HPB Debug Log Enable"
+	depends on SCSI_UFSHCD && UFSFEATURE && UFSHPB
+	default n
+	---help---
+	UFS HPB Debug Enable (dmesg debug log & FTRACE msg)
+
+config HPB_ERR_INJECTION
+	bool "HPB ERROR INJECTION"
+	depends on SCSI_UFSHCD && UFSFEATURE && UFSHPB
+	---help---
+	error injection for checking HPB entry integrity
+
+config UFSTW
+	bool "UFS Turbo Write support"
+	depends on SCSI_UFSHCD && UFSFEATURE
+	---help---
+	UFS TW Feature Enable
+
+config UFSTW_IGNORE_GUARANTEE_BIT
+	bool "Ignore UFS Turbo Write Life Time Guarantee bit for POC"
+	default n
+	depends on SCSI_UFSHCD && UFSFEATURE && UFSTW
+	---help---
+	ignore the guarantee bit[31] of dTurboWriteBufferLifeTimeEst for PoC
+
+config UFSTW_BOOT_ENABLED
+        bool "Turbo Write enabled at boot time"
+	default y
+	depends on SCSI_UFSHCD && UFSFEATURE && UFSTW
+	---help---
+	fTurboWriteEn and fTurboWriteBufferFlushDuringHibnerEnter flags
+	are enabled at boot time.
+
+config SCSI_SKHPB
+	bool "Activate HPB Host-aware Performance Booster"
+	depends on SCSI_UFSHCD
+	help
+	Activate or deactive SKHPB driver
+
+config UFS_CHECK
+	bool "Activate WB&HPB provision check"
+	depends on SCSI_UFSHCD && FACTORY_BUILD
+	help
+	  Activate or deactive WB&HPB provision check
 
 config SCSI_UFS_CRYPTO
 	bool "UFS Crypto Engine Support"

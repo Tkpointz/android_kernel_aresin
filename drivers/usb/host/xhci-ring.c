@@ -367,7 +367,7 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci, unsigned long flags)
 	 * In the future we should distinguish between -ENODEV and -ETIMEDOUT
 	 * and try to recover a -ETIMEDOUT with a host controller reset.
 	 */
-	ret = xhci_handshake(&xhci->op_regs->cmd_ring,
+	ret = xhci_handshake_check_state(xhci, &xhci->op_regs->cmd_ring,
 			CMD_RING_RUNNING, 0, 5 * 1000 * 1000);
 	if (ret < 0) {
 		xhci_err(xhci, "Abort failed to stop command ring: %d\n", ret);
@@ -2433,7 +2433,7 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		break;
 	case COMP_SPLIT_TRANSACTION_ERROR:
 	case COMP_USB_TRANSACTION_ERROR:
-		xhci_dbg(xhci, "Transfer error for slot %u ep %u on endpoint\n",
+		xhci_warn_ratelimited(xhci, "Transfer error for slot %u ep %u on endpoint\n",
 			 slot_id, ep_index);
 		status = -EPROTO;
 		break;
@@ -2472,17 +2472,17 @@ static int handle_tx_event(struct xhci_hcd *xhci,
 		 * a Ring Overrun Event for IN Isoch endpoint or Ring
 		 * Underrun Event for OUT Isoch endpoint.
 		 */
-		xhci_dbg(xhci, "underrun event on endpoint\n");
+		xhci_warn_ratelimited(xhci, "underrun event on endpoint\n");
 		if (!list_empty(&ep_ring->td_list))
-			xhci_dbg(xhci, "Underrun Event for slot %d ep %d "
+			xhci_warn_ratelimited(xhci, "Underrun Event for slot %d ep %d "
 					"still with TDs queued?\n",
 				 TRB_TO_SLOT_ID(le32_to_cpu(event->flags)),
 				 ep_index);
 		goto cleanup;
 	case COMP_RING_OVERRUN:
-		xhci_dbg(xhci, "overrun event on endpoint\n");
+		xhci_warn_ratelimited(xhci, "overrun event on endpoint\n");
 		if (!list_empty(&ep_ring->td_list))
-			xhci_dbg(xhci, "Overrun Event for slot %d ep %d "
+			xhci_warn_ratelimited(xhci, "Overrun Event for slot %d ep %d "
 					"still with TDs queued?\n",
 				 TRB_TO_SLOT_ID(le32_to_cpu(event->flags)),
 				 ep_index);

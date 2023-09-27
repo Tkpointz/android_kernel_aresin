@@ -25,8 +25,13 @@ void mmc_crypto_free_host(struct mmc_host *host)
 
 void mmc_crypto_prepare_req(struct mmc_queue_req *mqrq)
 {
-	struct request *req = mmc_queue_req_to_req(mqrq);
-	struct mmc_request *mrq = &mqrq->brq.mrq;
+#ifdef CONFIG_MTK_EMMC_HW_CQ
+	struct request *req = mqrq->req;
+	struct mmc_request *mrq = &(mqrq->cmdq_req.mrq);
+#else /* let BUG() if SW-CQHCI run to here */
+	struct request *req = NULL;
+	struct mmc_request *mrq = NULL;
+#endif
 	const struct bio_crypt_ctx *bc;
 
 	if (!bio_crypt_should_process(req))
@@ -34,7 +39,15 @@ void mmc_crypto_prepare_req(struct mmc_queue_req *mqrq)
 
 	bc = req->bio->bi_crypt_context;
 	mrq->crypto_key_slot = bc->bc_keyslot;
-	mrq->data_unit_num = bc->bc_dun[0];
+	/*
+	 * OTA with ext4 (dun is 512 bytes) used LBA,
+	 * with F2FS (dun is 512 bytes), the dun[0] had
+	 * multiplied by 8.
+	 */
+	if (bc->hie_ext4)
+		mrq->data_unit_num = blk_rq_pos(req);
+	else
+		mrq->data_unit_num = lower_32_bits(bc->bc_dun[0]);
 	mrq->crypto_key = bc->bc_key;
 }
 EXPORT_SYMBOL_GPL(mmc_crypto_prepare_req);

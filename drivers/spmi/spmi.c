@@ -484,7 +484,7 @@ static void of_spmi_register_devices(struct spmi_controller *ctrl)
 		}
 
 		if (reg[0] >= SPMI_MAX_SLAVE_ID) {
-			dev_err(&ctrl->dev, "invalid usid on node %pOF\n", node);
+			dev_info(&ctrl->dev, "invalid usid on %pOF\n", node);
 			continue;
 		}
 
