@@ -1008,5 +1008,5 @@ USB SWITCH GPIO end */
 };
 //NFC end 
 
-#include <k6893v1_64/cust.dtsi>
+#include "mediatek/ares/cust.dtsi"
 /*End of this file, DO NOT ADD ANYTHING HERE*/
