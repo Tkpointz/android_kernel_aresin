@@ -1,15 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2015-2019, MICROTRUST Incorporated
  * Copyright (c) 2015, Linaro Limited
- *
- * This software is licensed under the terms of the GNU General Public
- * License version 2, as published by the Free Software Foundation, and
- * may be copied, distributed, and modified under those terms.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
  *
  */
 
@@ -38,7 +30,6 @@
 
 
 #define SOTER_SHM_NUM_PRIV_PAGES	1
-//#define TEEI_DTS_RESERVED_MEM
 
 static struct reserved_mem *reserved_mem;
 static atomic_t is_shm_pool_available = ATOMIC_INIT(0);
@@ -108,7 +99,7 @@ static void soter_release(struct tee_context *ctx)
 	if (!ctxdata)
 		return;
 
-	shm = isee_shm_alloc(ctx, sizeof(struct optee_msg_arg), TEE_SHM_MAPPED);
+	shm = isee_shm_alloc_noid(ctx, sizeof(struct optee_msg_arg), TEE_SHM_MAPPED);
 	if (!IS_ERR(shm)) {
 		arg = isee_shm_get_va(shm, 0);
 		/*
@@ -166,7 +157,6 @@ struct tee_device *isee_get_teedev(void)
 	IMSG_ERROR("[%s][%d] soter_priv is NULL!\n", __func__, __LINE__);
 	return NULL;
 }
-
 
 #ifndef TEEI_DTS_RESERVED_MEM
 static size_t teei_get_reserved_mem_size(void)
@@ -289,16 +279,12 @@ static void soter_remove(struct soter_priv *soter)
 	kfree(soter);
 }
 
-extern int is_teei_boot(void);
 static int __init soter_driver_init(void)
 {
 	struct tee_shm_pool *pool = NULL;
 	struct tee_device *teedev = NULL;
 	void *memremaped_shm = NULL;
 	int rc;
-
-	if (is_teei_boot() == 0)
-		return 0;
 
 	soter_priv = kzalloc(sizeof(*soter_priv), GFP_KERNEL);
 	if (!soter_priv) {

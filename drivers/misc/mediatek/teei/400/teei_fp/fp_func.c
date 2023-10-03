@@ -1,15 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2015-2019, MICROTRUST Incorporated
  * All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
  */
 
 #include <linux/kernel.h>
@@ -216,14 +209,10 @@ static void fp_setup_cdev(struct fp_dev *dev, int index)
 		IMSG_ERROR("Error %d adding fp %d.\n", err, index);
 }
 
-extern int is_teei_boot(void);
 int fp_init(void)
 {
 	int result = 0;
 	struct device *class_dev = NULL;
-
-	if (is_teei_boot() == 0)
-		return 0;
 
 	devno = MKDEV(fp_major, 0);
 	result = alloc_chrdev_region(&devno, 0, 1, DEV_NAME);
