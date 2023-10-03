@@ -1,15 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2015-2019, MICROTRUST Incorporated
  * All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
  */
 
 #include <linux/version.h>
@@ -102,8 +95,9 @@ static int teei_bind_current_cpu(void)
 	int cpu_id = 0;
 
 	/* Get current CPU ID */
+	preempt_disable();
 	cpu_id = smp_processor_id();
-
+	preempt_enable();
 	cpumask_clear(&mask);
 	cpumask_set_cpu(cpu_id, &mask);
 	set_cpus_allowed_ptr(teei_switch_task, &mask);
