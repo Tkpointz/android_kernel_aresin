@@ -543,7 +543,7 @@ static ssize_t double_tap_enable_write(struct file *file, const char __user *use
         char page[PAGESIZE] = {0};
         copy_from_user(page, user_buf, count);
         sscanf(page, "%d", &enabled);
-        fts_data->double_tap_enable = enabled > 0 ? 1 : 0;
+		fts_set_cur_value(14, enabled > 0 ? 1 : 0);
         fts_data->gesture_mode = enabled > 0 ? ENABLE : DISABLE;
         return count;
 }
