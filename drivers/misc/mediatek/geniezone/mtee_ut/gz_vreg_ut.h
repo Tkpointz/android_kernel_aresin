@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 MediaTek Inc.
+ * Copyright (C) 2015 MediaTek Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -11,11 +11,11 @@
  * GNU General Public License for more details.
  */
 
-#ifndef __GZ_SEC_STORAGE_UT_H__
-#define __GZ_SEC_STORAGE_UT_H__
 
-#define SS_UT_SRV_NAME "com.mediatek.geniezone.srv.ss-ut"
+#ifndef __GZ_VREG_UT_H__
+#define __GZ_VREG_UT_H__
 
-extern int test_SecureStorageBasic(void *args);
+int gz_test_vreg(void *arg);
 
 #endif
+
