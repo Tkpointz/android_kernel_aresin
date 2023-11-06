@@ -30,6 +30,7 @@ struct usbotg_boost {
 	struct platform_device *pdev;
 	struct charger_device *primary_charger;
 	struct charger_device *secondary_charger;
+	struct charger_device *quinary_charger;
 #if CONFIG_MTK_GAUGE_VERSION == 30
 	struct alarm otg_timer;
 	struct timespec endtime;
@@ -118,26 +119,46 @@ int usb_otg_set_vbus(int is_on)
 #if CONFIG_MTK_GAUGE_VERSION == 30
 	if (is_on) {
 		charger_dev_enable_otg(g_info->secondary_charger, true);
-		charger_dev_enable_otg(g_info->primary_charger, true);
-		charger_dev_set_boost_current_limit(g_info->primary_charger,
-			1500000);
-		if (g_info->polling_interval) {
-			charger_dev_kick_wdt(g_info->primary_charger);
-			enable_boost_polling(true);
+		if (g_info->quinary_charger) {
+			charger_dev_enable_otg(g_info->quinary_charger, true);
+			charger_dev_set_boost_current_limit(g_info->quinary_charger,
+					1500000);
+			if (g_info->polling_interval) {
+				charger_dev_kick_wdt(g_info->quinary_charger);
+				enable_boost_polling(true);
+			}
+		} else {
+			charger_dev_enable_otg(g_info->primary_charger, true);
+			charger_dev_set_boost_current_limit(g_info->primary_charger,
+					1500000);
+			if (g_info->polling_interval) {
+				charger_dev_kick_wdt(g_info->primary_charger);
+				enable_boost_polling(true);
+			}
 		}
 	} else {
-		charger_dev_enable_otg(g_info->primary_charger, false);
+		if (g_info->quinary_charger)
+			charger_dev_enable_otg(g_info->quinary_charger, false);
+		else
+			charger_dev_enable_otg(g_info->primary_charger, false);
 		charger_dev_enable_otg(g_info->secondary_charger, false);
 		if (g_info->polling_interval)
 			enable_boost_polling(false);
 	}
 #else
 	if (is_on) {
-		charger_dev_enable_otg(g_info->primary_charger, true);
-		charger_dev_set_boost_current_limit(g_info->primary_charger,
-			1500000);
+		if (g_info->quinary_charger) {
+			charger_dev_enable_otg(g_info->quinary_charger, true);
+			charger_dev_set_boost_current_limit(g_info->quinary_charger, 1500000);
+		} else {
+			charger_dev_enable_otg(g_info->primary_charger, true);
+			charger_dev_set_boost_current_limit(g_info->primary_charger, 1500000);
+		}
 	} else {
-		charger_dev_enable_otg(primary_charger, false);
+		if (g_info->quinary_charger)
+			charger_dev_enable_otg(quinary_charger, false);
+		else
+			charger_dev_enable_otg(primary_charger, false);
 	}
 #endif
 	return 0;
@@ -173,6 +194,7 @@ static int usbotg_boost_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, info);
 	info->pdev = pdev;
+
 	info->primary_charger = get_charger_by_name("primary_chg");
 	if (!info->primary_charger) {
 		pr_info("%s: get primary charger device failed\n", __func__);
@@ -184,12 +206,19 @@ static int usbotg_boost_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
+	info->quinary_charger = get_charger_by_name("quinary_chg");
+	if (!info->quinary_charger) {
+		pr_info("%s: get quinary charger device failed\n", __func__);
+		//return -ENODEV;
+	}
+
+
 #if CONFIG_MTK_GAUGE_VERSION == 30
 	alarm_init(&info->otg_timer, ALARM_BOOTTIME,
 		usbotg_alarm_timer_func);
 	if (of_property_read_u32(node, "boost_period",
 		(u32 *) &info->polling_interval)) {
-		pr_info("%s: get boost_period failed\n", __func__);
+		pr_info("%s: get polling interval failed\n", __func__);
 		info->polling_interval = 0;
 	}
 

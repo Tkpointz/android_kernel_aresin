@@ -19,6 +19,7 @@
 #include <linux/pinctrl/consumer.h>
 #include <linux/seq_file.h>
 #include <linux/uaccess.h>
+#include <linux/power_supply.h>
 
 #if CONFIG_MTK_GAUGE_VERSION == 30
 #include <mtk_gauge_time_service.h>
@@ -28,8 +29,11 @@
 
 struct usbotg_boost {
 	struct platform_device *pdev;
-	struct charger_device *primary_charger;
-	struct charger_device *secondary_charger;
+	struct charger_device *bbc_charger;
+	struct charger_device *xmusb350;
+	struct charger_device *cp_master;
+	struct power_supply *bms_psy;
+	struct delayed_work disable_otg_work;
 #if CONFIG_MTK_GAUGE_VERSION == 30
 	struct alarm otg_timer;
 	struct timespec endtime;
@@ -82,7 +86,7 @@ static void usbotg_boost_kick_work(struct work_struct *work)
 
 	pr_info("%s\n", __func__);
 
-	charger_dev_kick_wdt(usb_boost_manager->primary_charger);
+	charger_dev_kick_wdt(usb_boost_manager->bbc_charger);
 
 	if (usb_boost_manager->polling_enabled == true)
 		usbotg_alarm_start_timer(usb_boost_manager);
@@ -93,16 +97,52 @@ static enum alarmtimer_restart
 {
 	struct usbotg_boost *usb_boost_manager =
 		container_of(alarm, struct usbotg_boost, otg_timer);
+	union power_supply_propval val = {0,};
+
+	pr_info("%s\n", __func__);
 
 	queue_work(usb_boost_manager->boost_workq,
 		&usb_boost_manager->kick_work);
+
+	if (g_info && g_info->bms_psy) {
+		power_supply_get_property(g_info->bms_psy, POWER_SUPPLY_PROP_CAPACITY, &val);
+		if (val.intval <= 3) {
+			pr_info("%s: low soc, disable OTG\n", __func__);
+			schedule_delayed_work(&g_info->disable_otg_work, msecs_to_jiffies(200));
+		}
+	}
 
 	return ALARMTIMER_NORESTART;
 }
 #endif
 
+static void usbotg_disable_otg(struct work_struct *work)
+{
+	struct usbotg_boost *info = container_of(work, struct usbotg_boost, disable_otg_work.work);
+
+	if (!info)
+		return;
+
+	charger_dev_enable_otg(g_info->xmusb350, false);
+	charger_dev_enable_otg(g_info->bbc_charger, false);
+	charger_dev_enable_otg(g_info->cp_master, false);
+	enable_boost_polling(false);
+
+	return;
+}
+
 int usb_otg_set_vbus(int is_on)
 {
+	union power_supply_propval val = {0,};
+
+	if (is_on && g_info && g_info->bms_psy) {
+		power_supply_get_property(g_info->bms_psy, POWER_SUPPLY_PROP_CAPACITY, &val);
+		if (val.intval <= 3) {
+			pr_info("%s: low soc don't enable OTG\n", __func__);
+			return 0;
+		}
+	}
+
 	if (!IS_ERR(drvvbus)) {
 		if (is_on)
 			pinctrl_select_state(drvvbus, drvvbus_high);
@@ -117,27 +157,28 @@ int usb_otg_set_vbus(int is_on)
 
 #if CONFIG_MTK_GAUGE_VERSION == 30
 	if (is_on) {
-		charger_dev_enable_otg(g_info->secondary_charger, true);
-		charger_dev_enable_otg(g_info->primary_charger, true);
-		charger_dev_set_boost_current_limit(g_info->primary_charger,
-			1500000);
-		if (g_info->polling_interval) {
-			charger_dev_kick_wdt(g_info->primary_charger);
-			enable_boost_polling(true);
-		}
+		charger_dev_enable_otg(g_info->xmusb350, true);
+		charger_dev_enable_otg(g_info->cp_master, true);
+		charger_dev_enable_otg(g_info->bbc_charger, true);
+		charger_dev_set_boost_current_limit(g_info->bbc_charger, 1500000);
+		charger_dev_kick_wdt(g_info->bbc_charger);
+		enable_boost_polling(true);
 	} else {
-		charger_dev_enable_otg(g_info->primary_charger, false);
-		charger_dev_enable_otg(g_info->secondary_charger, false);
-		if (g_info->polling_interval)
-			enable_boost_polling(false);
+		charger_dev_enable_otg(g_info->xmusb350, false);
+		charger_dev_enable_otg(g_info->bbc_charger, false);
+		charger_dev_enable_otg(g_info->cp_master, false);
+		enable_boost_polling(false);
 	}
 #else
 	if (is_on) {
-		charger_dev_enable_otg(g_info->primary_charger, true);
-		charger_dev_set_boost_current_limit(g_info->primary_charger,
-			1500000);
+		charger_dev_enable_otg(g_info->xmusb350, true);
+		charger_dev_enable_otg(g_info->cp_master, true);
+		charger_dev_enable_otg(g_info->bbc_charger, true);
+		charger_dev_set_boost_current_limit(g_info->bbc_charger, 1500000);
 	} else {
-		charger_dev_enable_otg(primary_charger, false);
+		charger_dev_enable_otg(g_info->xmusb350, false);
+		charger_dev_enable_otg(g_info->bbc_charger, false);
+		charger_dev_enable_otg(g_info->cp_master, false);
 	}
 #endif
 	return 0;
@@ -173,26 +214,40 @@ static int usbotg_boost_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, info);
 	info->pdev = pdev;
-	info->primary_charger = get_charger_by_name("primary_chg");
-	if (!info->primary_charger) {
-		pr_info("%s: get primary charger device failed\n", __func__);
+	info->bbc_charger = get_charger_by_name("bbc");
+	if (!info->bbc_charger) {
+		pr_info("%s: get BBC charger device failed\n", __func__);
 		return -ENODEV;
 	}
-	info->secondary_charger = get_charger_by_name("secondary_chg");
-	if (!info->secondary_charger) {
-		pr_info("%s: get secondary charger device failed\n", __func__);
+
+	info->xmusb350 = get_charger_by_name("xmusb350");
+	if (!info->xmusb350) {
+		pr_info("%s: get xmusb350 device failed\n", __func__);
 		return -ENODEV;
 	}
+
+	info->cp_master = get_charger_by_name("cp_master");
+	if (!info->cp_master) {
+		pr_info("%s: get cp_master device failed\n", __func__);
+		return -ENODEV;
+	}
+
+	info->bms_psy = power_supply_get_by_name("bms");
+	if (!info->bms_psy) {
+		pr_info("%s: get bms_psy failed\n", __func__);
+		return -ENODEV;
+	}
+
+	INIT_DELAYED_WORK(&info->disable_otg_work, usbotg_disable_otg);
 
 #if CONFIG_MTK_GAUGE_VERSION == 30
 	alarm_init(&info->otg_timer, ALARM_BOOTTIME,
 		usbotg_alarm_timer_func);
 	if (of_property_read_u32(node, "boost_period",
-		(u32 *) &info->polling_interval)) {
-		pr_info("%s: get boost_period failed\n", __func__);
-		info->polling_interval = 0;
-	}
+		(u32 *) &info->polling_interval))
+		return -EINVAL;
 
+	info->polling_interval = 15;
 	info->boost_workq = create_singlethread_workqueue("boost_workq");
 	INIT_WORK(&info->kick_work, usbotg_boost_kick_work);
 #endif
@@ -202,6 +257,9 @@ static int usbotg_boost_probe(struct platform_device *pdev)
 
 static int usbotg_boost_remove(struct platform_device *pdev)
 {
+	if (g_info)
+		cancel_delayed_work_sync(&g_info->disable_otg_work);
+
 	return 0;
 }
 
