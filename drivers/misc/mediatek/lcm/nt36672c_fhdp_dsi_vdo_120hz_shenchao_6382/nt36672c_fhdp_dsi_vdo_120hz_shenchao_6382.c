@@ -102,7 +102,7 @@ static struct LCM_UTIL_FUNCS lcm_util;
 #ifndef FALSE
 #define FALSE 0
 #endif
-
+#define DSC_ENABLE
 /* i2c control start */
 
 #define LCM_I2C_ADDR 0x3E
@@ -222,14 +222,18 @@ static struct LCM_setting_table lcm_suspend_setting[] = {
 	{0x28, 0, {} },
 	{REGFLAG_DELAY, 20, {} },
 	{0x10, 0, {} },
-	{REGFLAG_DELAY, 120, {} },
+//	{REGFLAG_DELAY, 120, {} },
 };
 
 static struct LCM_setting_table init_setting_vdo[] = {
 	{0xFF, 1, {0x10} },
 	{0xFB, 1, {0x01} },
 	//DSC on
+#ifdef DSC_ENABLE
 	{0xC0, 1, {0x03} },
+#else
+	//{0xC0, 1, {0x00} },
+#endif
 	{0xC1, 16,
 		{0x89, 0x28, 0x00, 0x08, 0x00, 0xAA, 0x02, 0x0E,
 		 0x00, 0x2B, 0x00, 0x07, 0x0D, 0xB7, 0x0C, 0xB7} },
@@ -299,15 +303,15 @@ static struct LCM_setting_table init_setting_vdo[] = {
 
 	{0xFF, 1, {0xD0} },
 	{0xFB, 1, {0x01} },
-	{0X09, 1, {0xAD} },
+	{0x09, 1, {0xAD} },
 
 	{0xFF, 1, {0X20} },
 	{0xFB, 1, {0x01} },
-	{0XF8, 1, {0x64} },
+	{0xF8, 1, {0x64} },
 
 	{0xFF, 1, {0x2A} },
 	{0xFB, 1, {0x01} },
-	{0X1A, 1, {0xF0} },
+	{0x1A, 1, {0xF0} },
 	{0x30, 1, {0x5E} },
 	{0x31, 1, {0xCA} },
 	{0x34, 1, {0xFE} },
@@ -339,22 +343,22 @@ static struct LCM_setting_table init_setting_vdo[] = {
 	{0x9C, 1, {0x11} },
 	{0x9D, 1, {0x11} },
 	//60HZ VESA DSC
-	{0xFF, 1, {0x25} },
-	{0xFB, 1, {0x01} },
-	{0x18, 1, {0x22} },
+	//{0xFF, 1, {0x25} },
+	//{0xFB, 1, {0x01} },
+	//{0x18, 1, {0x22} },
 
 	//CCMRUN
 	{0xFF, 1, {0x10} },
 	{0xFB, 1, {0x01} },
-	{0xC0, 1, {0x03} },
-	{0x51, 1, {0x00} },
-	{0x35, 1, {0x00} },
-	{0x53, 1, {0x24} },
 #ifdef DSC_ENABLE
 	{0xC0, 1, {0x03} },
 #else
 	{0xC0, 1, {0x00} },
 #endif
+	{0x51, 1, {0x00} },
+	{0x35, 1, {0x00} },
+	{0x53, 1, {0x24} },
+
 	{0x53, 1, {0x24} },
 	{0x55, 1, {0x00} },
 	{0xFF, 1, {0x10} },
@@ -437,26 +441,33 @@ static void lcm_set_util_funcs(const struct LCM_UTIL_FUNCS *util)
 static void lcm_dfps_int(struct LCM_DSI_PARAMS *dsi)
 {
 	struct dfps_info *dfps_params = dsi->dfps_params;
+
 	dsi->dfps_enable = 1;
-	dsi->dfps_default_fps = 9000;/*real fps * 100, to support float*/
-	dsi->dfps_def_vact_tim_fps = 9000;/*real vact timing fps * 100*/
+	dsi->dfps_default_fps = 12000;/*real fps * 100, to support float*/
+	dsi->dfps_def_vact_tim_fps = 12000;/*real vact timing fps * 100*/
 	/* traversing array must less than DFPS_LEVELS */
 	/* DPFS_LEVEL0 */
 	dfps_params[0].level = DFPS_LEVEL0;
 	dfps_params[0].fps = 6000;/*real fps * 100, to support float*/
-	dfps_params[0].vact_timing_fps = 9000;/*real vact timing fps * 100*/
+	dfps_params[0].vact_timing_fps = 12000;/*real vact timing fps * 100*/
 	/* if mipi clock solution */
-	dfps_params[0].PLL_CLOCK = 500;
-	dfps_params[0].vertical_frontporch = 2480;
+	//dfps_params[0].PLL_CLOCK = 500;
 	/* dfps_params[0].data_rate = xx; */
+	/* if vfp solution */
+	dfps_params[0].vertical_frontporch = 2500;
+	dfps_params[0].vertical_frontporch_for_low_power = 3550; //50hz
+
 	/* DPFS_LEVEL1 */
 	dfps_params[1].level = DFPS_LEVEL1;
-	dfps_params[1].fps = 9000;/*real fps * 100, to support float*/
-	dfps_params[1].vact_timing_fps = 9000;/*real vact timing fps * 100*/
+	dfps_params[1].fps = 12000;/*real fps * 100, to support float*/
+	dfps_params[1].vact_timing_fps = 12000;/*real vact timing fps * 100*/
 	/* if mipi clock solution */
-	dfps_params[1].PLL_CLOCK = 500;
-	dfps_params[1].vertical_frontporch = 800;
+/*	dfps_params[1].PLL_CLOCK = 500;*/
 	/* dfps_params[1].data_rate = xx; */
+	/* if vfp solution */
+	dfps_params[1].vertical_frontporch = 54;
+	dfps_params[1].vertical_frontporch_for_low_power = 880; //90hz
+
 	dsi->dfps_num = 2;
 }
 #endif
@@ -499,8 +510,8 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 	params->dsi.PS = LCM_PACKED_PS_24BIT_RGB888;
 
 	params->dsi.vertical_sync_active = 10;
-	params->dsi.vertical_backporch = 22;
-	params->dsi.vertical_frontporch = 800;
+	params->dsi.vertical_backporch = 10;
+	params->dsi.vertical_frontporch = 54;
 	//params->dsi.vertical_frontporch_for_low_power = 750;
 	params->dsi.vertical_active_line = FRAME_HEIGHT;
 
@@ -511,12 +522,48 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 	params->dsi.ssc_disable = 1;
 	params->dsi.bdg_ssc_disable = 1;
 	params->dsi.dsc_enable = 0;
+
+#ifdef CONFIG_MTK_MT6382_BDG
+	params->dsi.bdg_ssc_disable = 1;
+	params->dsi.dsc_params.ver = 17;
+	params->dsi.dsc_params.slice_mode = 1;
+	params->dsi.dsc_params.rgb_swap = 0;
+	params->dsi.dsc_params.dsc_cfg = 34;
+	params->dsi.dsc_params.rct_on = 1;
+	params->dsi.dsc_params.bit_per_channel = 8;
+	params->dsi.dsc_params.dsc_line_buf_depth = 9;
+	params->dsi.dsc_params.bp_enable = 1;
+	params->dsi.dsc_params.bit_per_pixel = 128;
+	params->dsi.dsc_params.pic_height = 2400;
+	params->dsi.dsc_params.pic_width = 1080;
+	params->dsi.dsc_params.slice_height = 8;
+	params->dsi.dsc_params.slice_width = 540;
+	params->dsi.dsc_params.chunk_size = 540;
+	params->dsi.dsc_params.xmit_delay = 170;
+	params->dsi.dsc_params.dec_delay = 526;
+	params->dsi.dsc_params.scale_value = 32;
+	params->dsi.dsc_params.increment_interval = 43;
+	params->dsi.dsc_params.decrement_interval = 7;
+	params->dsi.dsc_params.line_bpg_offset = 12;
+	params->dsi.dsc_params.nfl_bpg_offset = 3511;
+	params->dsi.dsc_params.slice_bpg_offset = 3255;
+	params->dsi.dsc_params.initial_offset = 6144;
+	params->dsi.dsc_params.final_offset = 7072;
+	params->dsi.dsc_params.flatness_minqp = 3;
+	params->dsi.dsc_params.flatness_maxqp = 12;
+	params->dsi.dsc_params.rc_model_size = 8192;
+	params->dsi.dsc_params.rc_edge_factor = 6;
+	params->dsi.dsc_params.rc_quant_incr_limit0 = 11;
+	params->dsi.dsc_params.rc_quant_incr_limit1 = 11;
+	params->dsi.dsc_params.rc_tgt_offset_hi = 3;
+	params->dsi.dsc_params.rc_tgt_offset_lo = 3;
+#endif
+
 #ifndef CONFIG_FPGA_EARLY_PORTING
 	/* this value must be in MTK suggested table */
 #ifdef DSC_ENABLE
 	params->dsi.bdg_dsc_enable = 1;
-	params->dsi.PLL_CLOCK = 220; //with dsc
-//	params->dsi.PLL_CLOCK = 300; //with dsc
+	params->dsi.PLL_CLOCK = 500; //with dsc
 #else
 	params->dsi.bdg_dsc_enable = 0;
 	params->dsi.PLL_CLOCK = 500; //without dsc
@@ -529,11 +576,11 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 #endif
 	params->dsi.CLK_HS_POST = 36;
 	params->dsi.clk_lp_per_line_enable = 0;
-	params->dsi.esd_check_enable = 0;
-	params->dsi.customization_esd_check_enable = 0;
+	params->dsi.esd_check_enable = 1;
+	params->dsi.customization_esd_check_enable = 1;
 	params->dsi.lcm_esd_check_table[0].cmd = 0x0a;
 	params->dsi.lcm_esd_check_table[0].count = 1;
-	params->dsi.lcm_esd_check_table[0].para_list[0] = 0x9d;
+	params->dsi.lcm_esd_check_table[0].para_list[0] = 0x9c;
 
 	/* for ARR 2.0 */
 	// params->max_refresh_rate = 60;
@@ -568,26 +615,26 @@ static void lcm_get_params(struct LCM_PARAMS *params)
 		// ? params->dsi.dynamic_fps_levels
 		// : dynamic_fps_levels;
 
-	// for (i = 0; i < dynamic_fps_levels; i++) {
+	//for (i = 0; i < dynamic_fps_levels; i++) {
 		// params->dsi.dynamic_fps_table[i].fps =
-			// lcm_dynamic_fps_setting[i].fps;
-		// params->dsi.dynamic_fps_table[i].vfp =
-			// lcm_dynamic_fps_setting[i].vfp;
-		// params->dsi.dynamic_fps_table[i].idle_check_interval =
-		 // lcm_dynamic_fps_setting[i].idle_check_interval;
-	// }
-#ifdef CONFIG_MTK_HIGH_FRAME_RATE
+			//lcm_dynamic_fps_setting[i].fps;
+		//params->dsi.dynamic_fps_table[i].vfp =
+			//lcm_dynamic_fps_setting[i].vfp;
+		//params->dsi.dynamic_fps_table[i].idle_check_interval =
+			//lcm_dynamic_fps_setting[i].idle_check_interval;
+//	}
+	#ifdef CONFIG_MTK_HIGH_FRAME_RATE
 	/****DynFPS start****/
 	lcm_dfps_int(&(params->dsi));
 	/****DynFPS end****/
-#endif
+	#endif
 }
 
 /* turn on gate ic & control voltage to 5.5V */
 static void lcm_init_power(void)
 {
 	display_bias_enable();
-/*
+#if 0
 	if (lcm_util.set_gpio_lcd_enp_bias) {
 		lcm_util.set_gpio_lcd_enp_bias(1);
 
@@ -595,7 +642,7 @@ static void lcm_init_power(void)
 		_lcm_i2c_write_bytes(0x1, 0xf);
 	} else
 		LCM_LOGI("set_gpio_lcd_enp_bias not defined...\n");
-*/
+#endif
 }
 
 static void lcm_suspend_power(void)
@@ -617,7 +664,7 @@ static void lcm_resume_power(void)
 static void lcm_init(void)
 {
 	SET_RESET_PIN(0);
-	MDELAY(15);
+	MDELAY(10);
 	SET_RESET_PIN(1);
 	MDELAY(1);
 	SET_RESET_PIN(0);
@@ -744,8 +791,8 @@ static unsigned int lcm_compare_id(void)
 
 }
 
-struct LCM_DRIVER nt36672c_fhdp_dsi_vdo_60hz_wo_dsc_shenchao_lcm_drv = {
-	.name = "nt36672c_fhdp_dsi_vdo_60hz_wo_dsc_shenchao_lcm_drv",
+struct LCM_DRIVER nt36672c_fhdp_dsi_vdo_120hz_shenchao_6382_lcm_drv = {
+	.name = "nt36672c_fhdp_dsi_vdo_120hz_shenchao_6382_lcm_drv",
 	.set_util_funcs = lcm_set_util_funcs,
 	.get_params = lcm_get_params,
 	.init = lcm_init,
