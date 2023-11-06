@@ -159,56 +159,56 @@
 	};
 	camera_pins_cam0_vcamd_0: cam0@vcam0 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO146__FUNC_GPIO146>;
+			pinmux = <PINMUX_GPIO4__FUNC_GPIO4>;
 			slew-rate = <1>;
 			output-low;
 		};
 	};
 	camera_pins_cam0_vcamd_1: cam0@vcam1 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO146__FUNC_GPIO146>;
+			pinmux = <PINMUX_GPIO4__FUNC_GPIO4>;
 			slew-rate = <1>;
 			output-high;
 		};
 	};
 	camera_pins_cam0_vcama_0: cam0@vcam2 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO146__FUNC_GPIO146>;
+			pinmux = <PINMUX_GPIO112__FUNC_GPIO112>;
 			slew-rate = <1>;
 			output-low;
 		};
 	};
 	camera_pins_cam0_vcama_1: cam0@vcam3 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO146__FUNC_GPIO146>;
+			pinmux = <PINMUX_GPIO112__FUNC_GPIO112>;
 			slew-rate = <1>;
 			output-high;
 		};
 	};
 	camera_pins_cam1_vcamd_0: cam1@vcam0 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO146__FUNC_GPIO146>;
+			pinmux = <PINMUX_GPIO109__FUNC_GPIO109>;
 			slew-rate = <1>;
 			output-low;
 		};
 	};
 	camera_pins_cam1_vcamd_1: cam1@vcam1 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO146__FUNC_GPIO146>;
+			pinmux = <PINMUX_GPIO109__FUNC_GPIO109>;
 			slew-rate = <1>;
 			output-high;
 		};
 	};
 	camera_pins_cam1_vcama_0: cam1@vcam2 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO146__FUNC_GPIO146>;
+			pinmux = <PINMUX_GPIO111__FUNC_GPIO111>;
 			slew-rate = <1>;
 			output-low;
 		};
 	};
 	camera_pins_cam1_vcama_1: cam1@vcam3 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO146__FUNC_GPIO146>;
+			pinmux = <PINMUX_GPIO111__FUNC_GPIO111>;
 			slew-rate = <1>;
 			output-high;
 		};
@@ -453,21 +453,21 @@
 &kd_camera_hw1 {
 	cam0_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
 	cam1_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
-	cam2_vcamio-supply = <&mt_pmic_vtp_ldo_reg>;
+	cam2_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
 	cam3_vcamio-supply = <&mt_pmic_vcamio_ldo_reg>;
 
-	cam0_vcamd-supply = <&wl2866d1_dvdd1>;
-	cam0_vcama-supply = <&wl2866d1_avdd1>;
-	cam1_vcamd-supply = <&wl2866d2_dvdd1>;
-	cam1_vcama-supply = <&wl2866d2_avdd1>;
-	cam2_vcama-supply = <&wl2866d2_avdd1>;
-	cam3_vcamd-supply = <&wl2866d2_dvdd2>;
-	cam3_vcama-supply = <&wl2866d2_avdd2>;
+	cam2_vcamd-supply = <&wl2866d1_dvdd1>;
+	cam2_vcama-supply = <&wl2866d1_avdd1>;
+	cam3_vcamd-supply = <&wl2866d1_dvdd2>;
+	cam3_vcama-supply = <&wl2866d1_avdd2>;
 
-	cam0_enable_sensor = "ov64b40sunny_mipi_raw";
-	cam1_enable_sensor = "ov16a1qofilm_mipi_raw";
-	cam2_enable_sensor = "gc02m1sunny_mipi_raw";
-	cam3_enable_sensor = "imx355sunny_mipi_raw";
+	cam0_vcamaf-supply = <&mt_pmic_vtp_ldo_reg>;
+	cam2_vcamaf-supply = <&mt_pmic_vtp_ldo_reg>;
+
+	cam0_enable_sensor = "agates5khm2_mipi_raw agateov64b40_mipi_raw";
+	cam1_enable_sensor = "agateov16a1q_mipi_raw";
+	cam2_enable_sensor = "agates5k5e9_mipi_raw";
+	cam3_enable_sensor = "agateimx355_mipi_raw";
 
 	pinctrl-names = "default",
 			"cam0_rst0", "cam0_rst1",
@@ -592,12 +592,6 @@
 		status = "okay";
 	};
 
-	mtk_camera_eeprom4:camera_eeprom4@51 {
-		compatible = "mediatek,camera_eeprom";
-		reg = <0x51>;
-		status = "okay";
-	};
-
 };
 &i2c8 {
 	mtk_camera_eeprom2:camera_eeprom2@52 {
@@ -614,9 +608,3 @@
 };
 /* CAMERA EEPROM end */
 
-/* CAMERA AF start */
-&camera_af_hw_node {
-	vcamwaf-supply = <&wl2866d1_avdd2>;
-	status = "okay";
-};
-/* CAMERA AF end */

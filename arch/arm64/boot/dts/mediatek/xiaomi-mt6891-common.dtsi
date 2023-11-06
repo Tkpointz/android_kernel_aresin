@@ -122,57 +122,42 @@
 	};
 };
 
-/* DISPSYS GPIO standardization */
 &pio {
-	mtkfb_pins_lcm_rst_out1_gpio: lcm_rst_out1_gpio {
+	uart_gpio_enable: uart_gpio_enable@gpio101 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO42__FUNC_GPIO42>;
+			pinmux = <PINMUX_GPIO101__FUNC_GPIO101>;
 			slew-rate = <1>;
-			output-high;
-		};
-	};
-
-	mtkfb_pins_lcm_rst_out0_gpio: lcm_rst_out0_gpio {
-		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO42__FUNC_GPIO42>;
-			slew-rate = <1>;
+			bias-disable;
 			output-low;
 		};
 	};
 
-	mtkfb_pins_lcm_dsi_te: lcm_dsi_te {
+	uart_gpio_disable: uart_gpio_disable@gpio101 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO41__FUNC_DSI_TE>;
+			pinmux = <PINMUX_GPIO101__FUNC_GPIO101>;
+			slew-rate = <1>;
+			bias-disable;
+			output-high;
 		};
 	};
 };
 
-&mtkfb {
-	pinctrl-names = "lcm_rst_out1_gpio", "lcm_rst_out0_gpio",
-		"mode_te_te";
-	pinctrl-0 = <&mtkfb_pins_lcm_rst_out1_gpio>;
-	pinctrl-1 = <&mtkfb_pins_lcm_rst_out0_gpio>;
-	pinctrl-2 = <&mtkfb_pins_lcm_dsi_te>;
-	status = "okay";
+&i2c9 {
+	et7480: et7480@42 {
+		status = "ok";
+		compatible = "mediatek,et7480-audioswitch";
+		reg = <0x42>;
+		pinctrl-names = "uart_enable", "uart_disable";
+		pinctrl-0 = <&uart_gpio_enable>;
+		pinctrl-1 = <&uart_gpio_disable>;
+	};
 };
-
-&dispsys_config {
-	pinctrl-names =
-		"lcm_rst_out1_gpio", "lcm_rst_out0_gpio",
-		"mode_te_te";
-	pinctrl-0 = <&mtkfb_pins_lcm_rst_out1_gpio>;
-	pinctrl-1 = <&mtkfb_pins_lcm_rst_out0_gpio>;
-	pinctrl-2 = <&mtkfb_pins_lcm_dsi_te>;
-	status = "okay";
-};
-/* DISPSYS GPIO standardization end */
-
 /* accdet start */
 &accdet {
 	/* accdet micbias voltage: 0x09:2.85v 0x08:2.8v 0x07,
 	 * 2.7v;0x05,2.5v;0x02,1.9v
 	 */
-	accdet-mic-vol = <8>;
+	accdet-mic-vol = <5>;
 	/* accdet pwm_width, pwm_thresh, fall_delay, rise_delay
 	 * debounce0, debounce1, debounce3, debounce4
 	 * eint pwm_width, eint pwm_thresh
@@ -194,11 +179,13 @@
 	/* select VTH to 2v and 500k, use internal resitance */
 	eint_use_ext_res = <0>;
 	status = "okay";
+	et7480-i2c-handle = <&et7480>;
 };
 /* accdet end */
 
 /* IRTX GPIO Start */
 &irtx_pwm {
+	pwm_ch = <0>;
 	pinctrl-names = "irtx_gpio_led_default", "irtx_gpio_led_set";
 	pinctrl-0 = <&irtx_gpio_led_default>;
 	pinctrl-1 = <&irtx_gpio_led_set>;
@@ -207,9 +194,9 @@
 &pio {
 	/* IRTX GPIO Settings -Start */
 	/* default: GPIO0, output, high */
-	irtx_gpio_led_default:irtx_gpio_led_def@gpio127 {
+	irtx_gpio_led_default:irtx_gpio_led_def@gpio135 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO127__FUNC_GPIO127>;
+			pinmux = <PINMUX_GPIO135__FUNC_GPIO135>;
 			slew-rate = <1>;
 			bias-disable;
 			output-low;
@@ -217,9 +204,9 @@
 		};
 	};
 
-	irtx_gpio_led_set:irtx_gpio_led_set@gpio127 {
+	irtx_gpio_led_set:irtx_gpio_led_set@gpio135 {
 		pins_cmd_dat {
-			pinmux = <PINMUX_GPIO127__FUNC_PWM_3>;
+			pinmux = <PINMUX_GPIO135__FUNC_PWM_0>;
 			slew-rate = <1>;
 			output-high;
 		};
@@ -230,7 +217,6 @@
 &spi1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	tee-only;
 	fingerprint@0 {
 		compatible = "goodix,goodix-fp";
 		reg = <0>;
@@ -242,12 +228,26 @@
 	};
 };
 
+&mt6360_ldo {
+	mt_pmic_vmc_ldo_reg: ldo3 {
+		regulator-compatible = "LDO3";
+		regulator-name = "VMC";
+	};
+
+	mt_pmic_vfp_ldo_reg: ldo1 {
+		regulator-compatible = "LDO1";
+		regulator-name = "VFP";
+	};
+};
+
 &goodix_fp {
-	pinctrl-names = "default", "reset_high", "reset_low", "eint_init";
+	pinctrl-names = "default", "reset_high", "reset_low", "eint_init", "spi_cs";
 	pinctrl-0 = <&fingerprint_default>;
 	pinctrl-1 = <&fingerprint_reset_high>;
 	pinctrl-2 = <&fingerprint_reset_low>;
 	pinctrl-3 = <&fingerprint_eint_init>;
+	pinctrl-4 = <&fingerprint_spi_cs>;
+	fpc,gpio_irq = <&pio 15 0>;
 	interrupt-parent = <&pio>;
 	interrupts = <15 IRQ_TYPE_EDGE_RISING 15 0>;
 	status = "okay";
@@ -278,6 +278,13 @@
 			input-schmitt-enable;
 		};
 	};
+	fingerprint_spi_cs: state_spi_cs {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO157__FUNC_SPI1_A_CSB>;
+			slew-rate = <0>;
+			bias-disable;
+		};
+	};
 };
 /* FINGERPRINT end */
 
@@ -295,7 +302,7 @@
 	mt6360pd,intr_gpio = <&pio 25 0x0>;
 };
 
-/* USB SWITCH GPIO start */
+/* USB SWITCH GPIO start
 &pio {
 	usb_default: usb_default {
 	};
@@ -428,7 +435,7 @@
 		c2_pin_val = <1>;
 	};
 };
-/* USB SWITCH GPIO end */
+USB SWITCH GPIO end */
 
 /* GPS GPIO standardization start */
 &pio {
@@ -491,40 +498,95 @@
 };
 /* GPS GPIO standardization end */
 
-&dsi0 {
-	status = "okay";
-	#address-cells = <1>;
-	#size-cells = <0>;
-	panel1@0 {
-		compatible = "k10_42_02_0a_dsc_cmd,lcm";
-		reg = <0>;
-		pm-enable-gpios = <&pio 109 0>;
-		te-gpios = <&pio 41 0>;
-		reset-gpios = <&pio 42 0>;
+&odm {
+	testing-mode {
+		compatible = "modem,testing-mode";
+		status-gpio = <&pio 23 0>;
+		debounce-time = <30>;
 		pinctrl-names = "default";
-		port {
-			panel_in: endpoint {
-				remote-endpoint = <&dsi_out>;
-			};
-		};
+		pinctrl-0 = <&test_mode_irq23>;
 	};
-	ports {
-		port {
-			dsi_out: endpoint {
-				remote-endpoint = <&panel_in>;
-			};
+};
+
+&pio {
+	test_mode_irq23: test_mode_irq23 {
+                pins_cmd_dat {
+			pinmux = <PINMUX_GPIO23__FUNC_GPIO23>;
+			drive-strength = <2>;
+			bias-disable;
+			input-enable;
 		};
 	};
 };
 
-/* CAMERA specify sensor */
-&kd_camera_hw1 {
-	cam2_enable_sensor = "imx586_mipi_raw s5k3m5sx_mipi_raw";
-	cam4_enable_sensor = "imx586_mipi_raw imx481_mipi_raw";
-};
-/* CAMERA specify sensor end */
+/* Audio Start */
+&i2c6 {
+	status = "okay";
+	cs35l41_bottom: cs35l41@40 {
+		compatible = "cirrus,cs35l41";
+		#sound-dai-cells = <0>;
+		reg = <0x40>;
+		reset-gpio = <&pio 30 0>;
+		switch-gpio = <&pio 27 0>;
+		interrupt-parent = <&pio>;
+		interrupts = <31 IRQ_TYPE_LEVEL_LOW 31 0>;
+		irq-gpio = <&pio 31 0>;
+		cirrus,boost-peak-milliamp = <4500>;
+		cirrus,boost-ind-nanohenry = <1000>;
+		cirrus,boost-cap-microfarad = <15>;
+		cirrus,asp-sdout-hiz = <1>;
+		cirrus,gpio-config2 {
+			cirrus,gpio-src-select = <0x4>;
+			cirrus,gpio-output-enable;
+		};
+	};
 
-#include "mediatek/cust_mt6893_touch.dtsi"
-#include "mediatek/cust_mt6885_camera.dtsi"
-#include <k6893v1_64_k510/cust.dtsi>
+	cs35l41_top: cs35l41@42 {
+		compatible = "cirrus,cs35l41";
+		#sound-dai-cells = <0>;
+		reg = <0x42>;
+		reset-gpio = <&pio 30 0>;
+		switch-gpio = <&pio 27 0>;
+		interrupt-parent = <&pio>;
+		interrupts = <113 IRQ_TYPE_LEVEL_LOW 113 0>;
+		irq-gpio = <&pio 113 0>;
+		cirrus,boost-peak-milliamp = <4500>;
+		cirrus,boost-ind-nanohenry = <1000>;
+		cirrus,boost-cap-microfarad = <15>;
+		cirrus,asp-sdout-hiz = <1>;
+		cirrus,tuning-has-prefix;
+		cirrus,gpio-config2 {
+			cirrus,gpio-src-select = <0x4>;
+			cirrus,gpio-output-enable;
+		};
+	};
+};
+/* Audio End */
+
+//ST NFC for Mediateckstart
+&i2c7 {
+    st21nfc@08 {
+      compatible = "mediatek,nfc";
+      reg = <0x08>;
+      gpio-irq = <11>;
+      gpio-irq-std = <&pio 11 0x00>;
+      interrupt-parent = <&pio>;
+      interrupts = <11 IRQ_TYPE_LEVEL_HIGH 11 0>;
+      gpio-rst = <10>;
+      gpio-rst-std = <&pio 10 0x0>;
+ //     st,clkreq_gpio = <&pio 25 0x0>;
+      interrupt-names = "nfc_irq";
+      pinctrl-names = "default", "nfc_active", "nfc_suspend";
+      pinctrl-0 = <&nfc_default>;
+      pinctrl-1 = <&nfc_int_active &nfc_enable_active>;
+ //       &nfc_clk_req_active>;
+      pinctrl-2 = <&nfc_int_suspend &nfc_enable_suspend>;
+//         &nfc_clk_req_suspend>;
+    };
+       
+};
+//NFC end 
+
+#include "mediatek/cust_mt6891_camera.dtsi"
+#include <k6891v1_64/cust.dtsi>
 /*End of this file, DO NOT ADD ANYTHING HERE*/
