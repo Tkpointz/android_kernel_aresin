@@ -825,6 +825,9 @@ static void *ion_buffer_kmap_get(struct ion_buffer *buffer)
 	void *vaddr;
 
 	if (buffer->kmap_cnt) {
+		if (buffer->kmap_cnt == INT_MAX)
+			return ERR_PTR(-EOVERFLOW);
+
 		buffer->kmap_cnt++;
 		return buffer->vaddr;
 	}
@@ -1729,7 +1732,7 @@ static void *ion_dma_buf_kmap(struct dma_buf *dmabuf, unsigned long offset)
 	void *vaddr;
 
 	if (!buffer->heap->ops->map_kernel) {
-		IONMSG("%s: map kernel is not implemented by this heap.\n",
+		pr_err("%s: map kernel is not implemented by this heap.\n",
 		       __func__);
 		return ERR_PTR(-ENOTTY);
 	}

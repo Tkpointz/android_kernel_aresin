@@ -278,7 +278,8 @@
 #define KEY_PAUSECD		201
 #define KEY_PROG3		202
 #define KEY_PROG4		203
-#define KEY_DASHBOARD		204	/* AL Dashboard */
+#define KEY_ALL_APPLICATIONS	204	/* AC Desktop Show All Applications */
+#define KEY_DASHBOARD		KEY_ALL_APPLICATIONS
 #define KEY_SUSPEND		205
 #define KEY_CLOSE		206	/* AC Close */
 #define KEY_PLAY		207
@@ -797,6 +798,7 @@
 #define SW_JACK_UNSUPPORTED	0x13  /* set = unsuported device inserted */
 #endif
 #define SW_MAX			0x20
+#define SW_MACHINE_COVER	0x10  /* set = cover closed */
 #define SW_CNT			(SW_MAX+1)
 
 /*
