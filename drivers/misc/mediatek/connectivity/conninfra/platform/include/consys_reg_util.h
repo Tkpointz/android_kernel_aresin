@@ -33,9 +33,6 @@
 
 #define KBYTE (1024*sizeof(char))
 
-#define GENMASK(h, l) \
-	(((~0UL) - (1UL << (l)) + 1) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
-
 #define GET_BIT_MASK(value, mask) ((value) & (mask))
 #define SET_BIT_MASK(pdest, value, mask) (*(pdest) = (GET_BIT_MASK(*(pdest), ~(mask)) | GET_BIT_MASK(value, mask)))
 #define GET_BIT_RANGE(data, end, begin) ((data) & GENMASK(end, begin))
